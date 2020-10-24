@@ -1,26 +1,25 @@
 # Hockeyverse
+A sports management game protocol for the open world. The Hockeyverse allows GMs to compose a team of Non-Fungible Tokens from various blockchain ecosystems and wreak havoc on the league.
 
-A hockey GM simulator for the open world. The Hockeyverse allows GMs to compose a team of Non-Fungible Tokens from various blockchain ecosystems and wreak havoc on the league.
+## Protocol Design
+Mechanics will be broken down as follows:
 
-## Game Design - Initial Toughts
-Game mechanics will be broken down as follows:
-
-### League
+### League - Resource
 - The league will have a leaderboard, schedule, games, player draft and a championship tournament with prizes
 - Each league will have "seasons". The length of each season is TBD
 - Additional leagues/tiers will be created as the user base and amount of active teams grows
 - Special "fun" leagues will be considered in order to maximize value for some third-party NFTs
 
-#### Schedule
+#### Season
 - Games will be scheduled and take place automatically. No player engagement required
-- GMs are responsible for having their rosters filled by their scheduled game time
+- GMs/Coaches are responsible for having their rosters filled by their scheduled game time
 
-#### Game (Match)
+##### Game (Match Result)
 - Early games will be a simple stats-based simulation (no live action - just results)
 - Live action games will be implemented after the beta version is completed (inspired by [Footbattle](https://footbattle.io/))
 - Game stats will be saved on-chain for each team and player
 
-#### Tournament
+##### Tournament
 - Elimination-style tournaments similar to the Stanley Cup Playoffs
 - Tournament winner gets a trophy and the largest prize
 - Prizes are awarded to the winners of each playoff round, scaling upwards in value as the tournament advances
@@ -46,7 +45,7 @@ Game mechanics will be broken down as follows:
 - GMs can use approved third-party NFTs as players
 - Third-party NFTs will require a single "hockey bag" purchase to be eligible to play
 
-### Hockey Bags (NFT)
+### Equipment Bags (NFT)
 - Hockey bags are "loot boxes" that provide a set of gear and upgradeable player stats
 - Hockey bags will provide a random player archetype for third-party players on first roll
 
