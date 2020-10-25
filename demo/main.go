@@ -7,7 +7,8 @@ import (
 	"github.com/versus-flow/go-flow-tooling/tooling"
 )
 
-const ExampleToken = "ExampleToken"
+const NonFungibleToken = "NonFungibleToken"
+const HockeyEquipment = "HockeyEquipment"
 
 func ufix(input string) cadence.UFix64 {
 	amount, err := cadence.NewUFix64(input)
@@ -22,7 +23,8 @@ func main() {
 
 	fmt.Println("Deploy contracts - press ENTER")
 	fmt.Scanln()
-	flow.DeployContract(ExampleToken)
+	flow.DeployContract(NonFungibleToken)
+	flow.DeployContract(HockeyEquipment)
 
 	fmt.Println()
 	fmt.Println()
