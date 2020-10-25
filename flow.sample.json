@@ -1,6 +1,4 @@
 {
-	"address" : "127.0.0.1:3569",
-	"gasLimit" : 1000, 
 	"accounts": {
 		"service": {
 			"address": "f8d6e0586b0a20c7",
@@ -8,17 +6,5 @@
 			"sigAlgorithm": "ECDSA_P256",
 			"hashAlgorithm": "SHA3_256"
 		}
-	}, 
-	"emulatorAccounts" : {
-		"1" : "01cf0e2f2f715450",
-		"2" : "179b6b1cb6755e31",
-		"3" : "f3fcd2c1a78f5eee",
-		"4" : "e03daebed8ca0615",
-		"5" : "045a1763c93006ca",
-        "6" : "120e725050340cab",
-        "7" : "f669cb8d41ce0c74",
-        "8" : "192440c99cb17282",
-		"9"	: "fd43f9148d4b725d",
-		"10": "eb179c27144f783c"
 	}
 }
