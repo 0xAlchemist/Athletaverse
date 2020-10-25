@@ -7,7 +7,5 @@ import (
 func main() {
 	em := gwtf.NewGoWithTheFlowEmulator()
 
-	println("Emulator connected")
-	// Deploy Contracts
-	em.DeployContract("ExampleToken")
+	gwtf.PrintEvents(em.DeployContract("ExampleToken"))
 }
