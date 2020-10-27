@@ -1,38 +1,40 @@
-// Equipment NFT
+// Sports Equipment NFT
 
-// Equipment provides the core stats for an athlete.
-
-// Core skater stats are:
-// - Skating (Speed/Agility)
-// - Shooting
-// - Hands (Dangles/Sauce)
-// - Checking
-
-// Core goalie stats are:
-// - Glove
-// - Blocker
-// - High
-// - Low
-
+// Sports Equipment provides stat multipliers for an athlete.
 import NonFungibleToken from 0x01cf0e2f2f715450
 
-pub contract HockeyEquipment: NonFungibleToken {
+pub contract SportsEquipment: NonFungibleToken {
     
     pub var totalSupply: UInt64
 
     pub event ContractInitialized()
     pub event Withdraw(id: UInt64, from: Address?)
     pub event Deposit(id: UInt64, to: Address?)
+    pub event NewEquipmentMinted(id: UInt64, type: String, rarity: Int, stat: String, multiplier: UFix64)
+
+    // Meta stores the metadata for a piece of SportsEquipment
+    pub struct Meta {
+        pub let type: String
+        pub let rarity: Int
+        pub let stat: String
+        pub let multiplier: UFix64
+
+        init(type: String, rarity: Int, stat: String, multiplier: UFix64) {
+            self.type = type
+            self.rarity = rarity
+            self.stat = stat
+            self.multiplier = multiplier
+        }
+    }
 
     pub resource NFT: NonFungibleToken.INFT {
         pub let id: UInt64
 
-        // TODO: Make this a custom struct!!!
-        pub var metadata: {String: String}
+        pub var metadata: Meta
 
-        init(initID: UInt64) {
+        init(initID: UInt64, meta: Meta) {
             self.id = initID
-            self.metadata = {}
+            self.metadata = meta
         }
     }
 
@@ -54,7 +56,7 @@ pub contract HockeyEquipment: NonFungibleToken {
         }
 
         pub fun deposit(token: @NonFungibleToken.NFT) {
-            let token <- token as! @HockeyEquipment.NFT
+            let token <- token as! @SportsEquipment.NFT
 
             let id: UInt64 = token.id
             let oldToken <- self.ownedNFTs[id] <- token
@@ -77,18 +79,22 @@ pub contract HockeyEquipment: NonFungibleToken {
         }
     }
 
-    pub fun createEmptyCollection(): @HockeyEquipment.Collection {
+    pub fun createEmptyCollection(): @SportsEquipment.Collection {
         return <- create Collection()
     }
 
     pub resource Equipminter {
-        pub fun mintEquip(recipient: &{NonFungibleToken.CollectionPublic}) {
-
-            var newNFT <- create NFT(initID: HockeyEquipment.totalSupply)
-
+        pub fun mintEquip(recipient: &{NonFungibleToken.CollectionPublic}, type: String, rarity: Int, stat: String, multiplier: UFix64) {
+            
+            let tokenID = SportsEquipment.totalSupply
+            let meta = Meta(type: type, rarity: rarity, stat: stat, multiplier: multiplier)
+            var newNFT <- create NFT(initID: tokenID, meta: meta)
+            
             recipient.deposit(token: <-newNFT)
 
-            HockeyEquipment.totalSupply = HockeyEquipment.totalSupply + UInt64(1)
+            SportsEquipment.totalSupply = SportsEquipment.totalSupply + 1 as UInt64
+            
+            emit NewEquipmentMinted(id: tokenID, type: meta.type, rarity: meta.rarity, stat: meta.stat, multiplier: meta.multiplier)
         }
     }
 
