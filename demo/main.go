@@ -9,7 +9,7 @@ import (
 )
 
 const NonFungibleToken = "NonFungibleToken"
-const HockeyEquipment = "SportsEquipment"
+const SportsEquipment = "SportsEquipment"
 
 func ufix(input string) cadence.UFix64 {
 	amount, err := cadence.NewUFix64(input)
@@ -25,7 +25,7 @@ func main() {
 	fmt.Println("Deploy contracts - press ENTER")
 	fmt.Scanln()
 	flow.DeployContract(NonFungibleToken)
-	flow.DeployContract(HockeyEquipment)
+	flow.DeployContract(SportsEquipment)
 
 	fmt.Println()
 	fmt.Println()
