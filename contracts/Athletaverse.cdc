@@ -17,6 +17,7 @@ pub contract Athletaverse {
 
     pub resource League {
 
+        // Each League has a unique ID
         pub let ID: UInt64
 
         init(ID: UInt64) {
