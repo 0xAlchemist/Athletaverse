@@ -50,6 +50,14 @@ pub contract Athletaverse {
         //
         pub fun removeTeam(_ ID: UInt64) {
             self.teams[ID] = nil
+
+        }
+
+        // getTeamIDs returns an array of Team IDs that have registered to
+        // the league
+        //
+        pub fun getTeamIds(): [UInt64] {
+            return self.teams.keys
         }
     }
 
