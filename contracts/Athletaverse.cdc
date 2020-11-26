@@ -1,12 +1,14 @@
 // The main Athletaverse contract
 //
 // This smart contract manages global state for the Athletaverse
+//
+// TODO: Explain sports and league creation once prototyped
 // 
 
 pub contract Athletaverse {
 
-    // numLeagues represents the total number of leagues that have been created
-    pub var numLeagues: UInt64
+    // totalLeagues represents the total number of leagues that have been created
+    pub var totalLeagues: UInt64
 
     // TODO: Update Flow CLI to version that supports Enums
     // sports is an Enum representing the available sport types - used to determine equipment type
@@ -29,7 +31,7 @@ pub contract Athletaverse {
         // TODO: define the capabibility type
         pub let teams: {UInt64: Capability?}
 
-        init(ID: UInt64) {
+        init(_ ID: UInt64) {
             self.ID = ID
             self.teams = {}
         }
@@ -46,13 +48,32 @@ pub contract Athletaverse {
         //
         // - this team will no longer be able to participate in the League's activities
         //
-        pub fun removeTeam(ID: UInt64) {
+        pub fun removeTeam(_ ID: UInt64) {
             self.teams[ID] = nil
         }
     }
 
+    // TODO: Should this be 'admin only' - could make this something users need to
+    // 'unlock' via purchase, or by committing their initial prize Vault to prevent
+    // spam League creation
+    // 
+    // createNewLeague creates a new League resource and returns it to the caller
+    pub fun createNewLeague(): @League {
+        
+        // set the league ID as the total number of leagues
+        let leagueID = Athletaverse.totalLeagues
+
+        // increment the total number of leagues by one
+        Athletaverse.totalLeagues = Athletaverse.totalLeagues + 1 as UInt64
+
+        // return the new League
+        return <- create League(leagueID)
+    }
+
+
     init() {
-        self.numLeagues = 0
+        // Initialize the contract with no Leagues or commissioners
+        self.totalLeagues = 0
         self.commissioners = {}
     }
 }
