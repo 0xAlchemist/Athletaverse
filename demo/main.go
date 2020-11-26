@@ -5,10 +5,11 @@ import (
 
 	"github.com/onflow/cadence"
 	"github.com/versus-flow/go-flow-tooling/tooling"
+
 )
 
 const NonFungibleToken = "NonFungibleToken"
-const HockeyEquipment = "HockeyEquipment"
+const HockeyEquipment = "SportsEquipment"
 
 func ufix(input string) cadence.UFix64 {
 	amount, err := cadence.NewUFix64(input)
