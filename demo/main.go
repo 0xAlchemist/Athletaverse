@@ -8,8 +8,7 @@ import (
 
 )
 
-const NonFungibleToken = "NonFungibleToken"
-const SportsEquipment = "SportsEquipment"
+const Athletaverse = "Athletaverse"
 
 func ufix(input string) cadence.UFix64 {
 	amount, err := cadence.NewUFix64(input)
@@ -23,11 +22,23 @@ func main() {
 	flow := tooling.NewFlowConfigLocalhost()
 
 	fmt.Println("Deploy contracts - press ENTER")
+
 	fmt.Scanln()
-	flow.DeployContract(NonFungibleToken)
-	flow.DeployContract(SportsEquipment)
+
+	flow.DeployContract(Athletaverse)
 
 	fmt.Println()
 	fmt.Println()
 	fmt.Println("Contracts successfully deployed!")
+
+	flow.SendTransaction("league/create_league", Athletaverse)
+	flow.SendTransaction("team/create_team", Athletaverse)
+	flow.SendTransaction("team/register_team", Athletaverse)
+
+	fmt.Println()
+	fmt.Println()
+	fmt.Println("Setup completed")
+
+	flow.RunScript("league/get_team_ids")
+
 }
