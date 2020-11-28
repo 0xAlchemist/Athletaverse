@@ -3,9 +3,9 @@
 // returns an array of Team IDs that belong to the League
 
 import Athletaverse from 0x01cf0e2f2f715450
-pub fun main() {
+pub fun main(account: Address) {
 
-    let account = getAccount(0x01cf0e2f2f715450)
+    let account = getAccount(account)
 
     let leagueCapability = account.getCapability(/public/AthletaverseLeague)
 
