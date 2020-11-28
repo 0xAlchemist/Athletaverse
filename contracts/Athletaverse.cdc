@@ -7,10 +7,34 @@
 
 pub contract Athletaverse {
 
-    // totalLeagues represents the total number of leagues that have been created
+    // emitted when the contract is initialized
+    pub event AthletaverseInitialized()
+
+    // emitted when a new League is created
+    pub event NewLeagueCreated(_ ID: UInt64)
+
+    // emitted when a new Team is created
+    pub event NewTeamCreated(ID: UInt64, name: String)
+
+    // emitted whenever a Team name is changed
+    pub event TeamNameUpdated(ID: UInt64, previousName: String, newName: String)
+
+    // emitted whenever an Athlete is added to a Team
+    pub event AthleteAddedToTeam(teamID: UInt64, athleteID: UInt64)
+
+    // emitted whenever an Athlere is removed from a Team
+    pub event AthleteRemovedFromTeam(teamID: UInt64, athleteID: UInt64)
+
+    // emitted when a Team has been registered to a League
+    pub event TeamRegisteredToLeague(teamID: UInt64, leagueID: UInt64)
+
+    // emitted when a Team has been removed from a League
+    pub event TeamRemovedFromLeague(teamID: UInt64, leagueID: UInt64)
+
+    // totalLeagues represents the total number of Leagues that have been created
     pub var totalLeagues: UInt64
 
-    // totalTeams represents the total number of teams that have been created
+    // totalTeams represents the total number of Teams that have been created
     pub var totalTeams: UInt64
 
     // TODO: Update Flow CLI to version that supports Enums
@@ -45,6 +69,8 @@ pub contract Athletaverse {
         init(_ ID: UInt64) {
             self.ID = ID
             self.teams = {}
+
+            emit NewLeagueCreated(ID)
         }
 
         // registerTeam adds a Team's public capability to the League
@@ -53,6 +79,8 @@ pub contract Athletaverse {
         //
         pub fun registerTeam(ID: UInt64, teamCapability: Capability) {
             self.teams[ID] = teamCapability
+
+            emit TeamRegisteredToLeague(teamID: ID, leagueID: self.ID)
         }
         
         // removeTeam removes the Team's public capability from the League
@@ -62,6 +90,7 @@ pub contract Athletaverse {
         pub fun removeTeam(ID: UInt64) {
             self.teams[ID] = nil
 
+            emit TeamRemovedFromLeague(teamID: ID, leagueID: self.ID)
         }
 
         // getTeamIDs returns an array of Team IDs that have registered to
@@ -107,11 +136,20 @@ pub contract Athletaverse {
             self.ID = ID
             self.name = name
             self.roster = {}
+
+            emit NewTeamCreated(ID: ID, name: name)
         }
 
         // updateTeamName sets the Team name to the provided value
         pub fun updateTeamName(_ name: String) {
+            
+            // store the old name for the event
+            let previousName = self.name
+            
+            // update the Team name
             self.name = name
+
+            emit TeamNameUpdated(ID: self.ID, previousName: previousName, newName: name)
         }
 
         // addAthleteToTeam adds an Athlete's public capability to the Team roster
@@ -120,6 +158,8 @@ pub contract Athletaverse {
         //
         pub fun addAthleteToTeam(ID: UInt64, athleteCapability: Capability) {
             self.roster[ID] = athleteCapability
+
+            emit AthleteAddedToTeam(teamID: self.ID, athleteID: ID)
         }
 
         // removeAthleteFromTeam removes an athlete's public capability from the Team roster
@@ -127,6 +167,8 @@ pub contract Athletaverse {
         // - the Athlete can no longer participate in Team activities
         pub fun removeAthleteFromTeam(ID: UInt64) {
             self.roster[ID] = nil
+
+            emit AthleteRemovedFromTeam(teamID: self.ID, athleteID: ID)
         }
 
         // getID returns the Team ID
