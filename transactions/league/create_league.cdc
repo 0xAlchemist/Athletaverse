@@ -10,7 +10,7 @@ transaction() {
     prepare(signer: AuthAccount) {
         
         // create a new League
-        let newLeague <- Athletaverse.createNewLeague()
+        let newLeague <- Athletaverse.createNewLeague(name: "Alpha League")
 
         // save the League to account storage
         signer.save(<-newLeague, to: /storage/AthletaverseLeague)

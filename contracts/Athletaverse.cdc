@@ -62,12 +62,16 @@ pub contract Athletaverse {
         // Each League has a unique ID
         pub let ID: UInt64
 
+        // Each League has a human readable name
+        pub let name: String
+
         // teams maps the ID for each Team registered to the league to it's Capability
         // TODO: define the capability type
         pub let teams: {UInt64: Capability?}
 
-        init(_ ID: UInt64) {
+        init(ID: UInt64, name: String) {
             self.ID = ID
+            self.name = name
             self.teams = {}
 
             emit NewLeagueCreated(ID)
@@ -77,10 +81,12 @@ pub contract Athletaverse {
         //
         // - this allows the Team to participate in the League's activities
         //
-        pub fun registerTeam(ID: UInt64, teamCapability: Capability) {
-            self.teams[ID] = teamCapability
-
-            emit TeamRegisteredToLeague(teamID: ID, leagueID: self.ID)
+        pub fun registerTeam(teamCapability: Capability) {
+            if let team = teamCapability.borrow<&Team>() {
+                self.teams[team.ID] = teamCapability
+            } else {
+                log("Unable to get Team ID. Team was not registered")
+            }
         }
         
         // removeTeam removes the Team's public capability from the League
@@ -100,13 +106,13 @@ pub contract Athletaverse {
             return self.teams.keys
         }
     }
-
-    // TODO: Should this be 'admin only' - could make this something users need to
+    
+    // TODO: This should be 'admin only' - could make this something users need to
     // 'unlock' via purchase, or by committing their initial prize Vault to prevent
     // spam League creation
     // 
     // createNewLeague creates a new League resource and returns it to the caller
-    pub fun createNewLeague(): @League {
+    pub fun createNewLeague(name: String): @League {
         
         // set the league ID to the total number of leagues
         let ID = Athletaverse.totalLeagues
@@ -115,7 +121,7 @@ pub contract Athletaverse {
         Athletaverse.totalLeagues = Athletaverse.totalLeagues + 1 as UInt64
 
         // return the new League
-        return <- create League(ID)
+        return <- create League(ID: ID, name: name)
     }
 
     // TEAM

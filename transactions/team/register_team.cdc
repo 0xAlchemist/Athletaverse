@@ -10,17 +10,11 @@ transaction() {
         // get the public capability for the Team from storage
         let teamCapability = signer.getCapability(/public/AthletaverseTeam)
 
-        // borrow a reference to the Team resource
-        let teamReference = teamCapability!.borrow<&Athletaverse.Team>()
-
-        // get the Team ID
-        let teamID = teamReference?.getID()
-
         // borrow a reference to the League from storage
         let leagueReference = signer.borrow<&Athletaverse.League>(from: /storage/AthletaverseLeague)
         ?? panic ("could not borrow league capability")
 
         // register the Team to the League
-        leagueReference.registerTeam(ID: teamID!, teamCapability: teamCapability!)
+        leagueReference.registerTeam(teamCapability: teamCapability!)
     }
 }

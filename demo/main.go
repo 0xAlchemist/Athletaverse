@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/bjartek/go-with-the-flow/gwtf"
-
 )
 
 func main() {
@@ -12,8 +11,8 @@ func main() {
 		CreateAccount("user_1", "user_2")
 
 	var ignoreFields = map[string][]string{
-		"flow.AccountCodeUpdated": []string{"codeHash"},
-		"flow.AccountKeyAdded": []string{"publicKey"},
+		"flow.AccountCodeUpdated": {"codeHash"},
+		"flow.AccountKeyAdded":    {"publicKey"},
 	}
 
 	// Create a league with user 1
@@ -27,7 +26,7 @@ func main() {
 		TransactionFromFile("team/create_team").
 		SignProposeAndPayAs("user_1").
 		RunPrintEvents(ignoreFields)
-	
+
 	// Register the team to the league
 	g.
 		TransactionFromFile("team/register_team").
