@@ -38,12 +38,16 @@ pub contract Athletaverse {
         // Each League has a unique ID
         pub let ID: UInt64
 
+        // Each League has a human readable name
+        pub let name: String
+
         // teams maps the ID for each Team registered to the league to it's Capability
         // TODO: define the capability type
         pub let teams: {UInt64: Capability?}
 
-        init(_ ID: UInt64) {
+        init(ID: UInt64, name: String) {
             self.ID = ID
+            self.name = name
             self.teams = {}
         }
 
@@ -81,7 +85,7 @@ pub contract Athletaverse {
     // spam League creation
     // 
     // createNewLeague creates a new League resource and returns it to the caller
-    pub fun createNewLeague(): @League {
+    pub fun createNewLeague(name: String): @League {
         
         // set the league ID to the total number of leagues
         let ID = Athletaverse.totalLeagues
@@ -90,7 +94,7 @@ pub contract Athletaverse {
         Athletaverse.totalLeagues = Athletaverse.totalLeagues + 1 as UInt64
 
         // return the new League
-        return <- create League(ID)
+        return <- create League(ID: ID, name: name)
     }
 
     // TEAM
