@@ -51,8 +51,12 @@ pub contract Athletaverse {
         //
         // - this allows the Team to participate in the League's activities
         //
-        pub fun registerTeam(ID: UInt64, teamCapability: Capability) {
-            self.teams[ID] = teamCapability
+        pub fun registerTeam(teamCapability: Capability) {
+            if let team = teamCapability.borrow<&Team>() {
+                self.teams[team.ID] = teamCapability
+            } else {
+                log("Unable to get Team ID. Team was not registered")
+            }
         }
         
         // removeTeam removes the Team's public capability from the League
@@ -71,8 +75,8 @@ pub contract Athletaverse {
             return self.teams.keys
         }
     }
-
-    // TODO: Should this be 'admin only' - could make this something users need to
+    
+    // TODO: This should be 'admin only' - could make this something users need to
     // 'unlock' via purchase, or by committing their initial prize Vault to prevent
     // spam League creation
     // 
