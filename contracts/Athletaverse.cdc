@@ -4,14 +4,14 @@
 //
 // TODO: Explain sports and league creation once prototyped
 // 
-
+// TODO: Add Collections for League and Team resource - are they NFTs or just similar resources?
 pub contract Athletaverse {
 
     // emitted when the contract is initialized
-    pub event AthletaverseInitialized()
+    pub event AthletaverseInitialized(totalLeagues: UInt64, totalTeams: UInt64)
 
     // emitted when a new League is created
-    pub event NewLeagueCreated(_ ID: UInt64)
+    pub event NewLeagueCreated(ID: UInt64, name: String)
 
     // emitted when a new Team is created
     pub event NewTeamCreated(ID: UInt64, name: String)
@@ -74,7 +74,7 @@ pub contract Athletaverse {
             self.name = name
             self.teams = {}
 
-            emit NewLeagueCreated(ID)
+            emit NewLeagueCreated(ID: ID, name: name)
         }
 
         // registerTeam adds a Team's public capability to the League
@@ -84,9 +84,13 @@ pub contract Athletaverse {
         pub fun registerTeam(teamCapability: Capability) {
             if let team = teamCapability.borrow<&Team>() {
                 self.teams[team.ID] = teamCapability
+
+                emit TeamRegisteredToLeague(teamID: team.ID, leagueID: self.ID)
             } else {
                 log("Unable to get Team ID. Team was not registered")
             }
+
+            
         }
         
         // removeTeam removes the Team's public capability from the League
@@ -213,5 +217,7 @@ pub contract Athletaverse {
 
         self.commissioners = {}
         self.teamOwners = {}
+
+        emit AthletaverseInitialized(totalLeagues: self.totalLeagues, totalTeams: self.totalTeams)
     }
 }
