@@ -25,17 +25,23 @@ pub contract Athletaverse {
     // emitted whenever an Athlere is removed from a Team
     pub event AthleteRemovedFromTeam(teamID: UInt64, athleteID: UInt64)
 
+    // emitted when a Team has requested registeration to a League
+    pub event TeamRegistrationRequested(teamID: UInt64, leagueID: UInt64)
+    
     // emitted when a Team has been registered to a League
     pub event TeamRegisteredToLeague(teamID: UInt64, leagueID: UInt64)
+    
+    // emitted when a Team has been denied registration to a League
+    pub event TeamRegistrationDenied(teamID: UInt64, leagueID: UInt64)
 
     // emitted when a Team has been removed from a League
     pub event TeamRemovedFromLeague(teamID: UInt64, leagueID: UInt64)
 
     // totalLeagues represents the total number of Leagues that have been created
-    pub var totalLeagues: UInt64
+    access(contract) var totalLeagues: UInt64
 
     // totalTeams represents the total number of Teams that have been created
-    pub var totalTeams: UInt64
+    access(contract) var totalTeams: UInt64
 
     // TODO: Update Flow CLI to version that supports Enums
     // sports is an Enum representing the available sport types - used to determine equipment type
@@ -45,13 +51,13 @@ pub contract Athletaverse {
     //
     // - Leagues are a resource that will be stored in the commissioner's account storage,
     // so we need an easy way to find out where each league is stored. 
-    pub var commissioners: {UInt64: Address}
+    access(contract) var commissioners: {UInt64: Address}
 
     // teamOwners is a dictionary that maps each league ID to it's owner's Flow address
     //
     // - Teams are a resource that will be stored in the owner's account storage,
     // so we need an easy way to find out where each team is stored. 
-    pub var teamOwners: {UInt64: Address}
+    access(contract) var teamOwners: {UInt64: Address}
 
     // LEAGUE
     //
@@ -60,19 +66,22 @@ pub contract Athletaverse {
     pub resource League {
 
         // Each League has a unique ID
-        pub let ID: UInt64
+        access(account) let ID: UInt64
 
         // Each League has a human readable name
-        pub let name: String
+        access(account) let name: String
 
         // teams maps the ID for each Team registered to the league to it's Capability
         // TODO: define the capability type
-        pub let teams: {UInt64: Capability?}
+        access(account) let teams: {UInt64: Capability?}
+
+        access(account) let requests: {UInt64: Capability?}
 
         init(ID: UInt64, name: String) {
             self.ID = ID
             self.name = name
             self.teams = {}
+            self.requests = {}
 
             emit NewLeagueCreated(ID: ID, name: name)
         }
@@ -81,26 +90,71 @@ pub contract Athletaverse {
         //
         // - this allows the Team to participate in the League's activities
         //
-        pub fun registerTeam(teamCapability: Capability) {
+        pub fun requestRegisterTeam(teamCapability: Capability) {
             if let team = teamCapability.borrow<&Team>() {
-                self.teams[team.ID] = teamCapability
+                self.requests[team.ID] = teamCapability
 
-                emit TeamRegisteredToLeague(teamID: team.ID, leagueID: self.ID)
+                emit TeamRegistrationRequested(teamID: team.ID, leagueID: self.ID)
             } else {
-                log("Unable to get Team ID. Team was not registered")
+                log("Unable to get Team ID. Request was not completed.")
             }
+        }
 
+        // approveRegisterTeam adds a Team's public capability to the League
+        //
+        // - this allows the Team to participate in the League's activities
+        //
+        pub fun approveRegisterTeam(teamID: UInt64) {
+            pre {
+                // terminate if no request exists for the given Team ID
+                self.requests[teamID] != nil : "Team has not requested to register"
+            }
             
+            // add the capability to the teams dictionary
+            self.teams[teamID] = self.requests[teamID]
+            
+            // remove the capability from the requests dictionary
+            self.requests[teamID] = nil
+            
+            // emit the event
+            emit TeamRegisteredToLeague(teamID: teamID, leagueID: self.ID)
+        }
+
+        // denyRegisterTeam removes the team from the requests dictionary
+        //
+        // - this allows the Team to participate in the League's activities
+        //
+        pub fun denyRegisterTeam(teamID: UInt64) {
+            pre {
+                // revert if no request exists for the given Team ID
+                self.requests[teamID] != nil : "Team has not requested to register"
+            }
+            
+            // remove the capability from the requests dictionary
+            self.requests[teamID] = nil
+
+            // emit the event
+            emit TeamRegistrationDenied(teamID: teamID, leagueID: self.ID)
         }
         
         // removeTeam removes the Team's public capability from the League
         //
         // - this team will no longer be able to participate in the League's activities
         //
-        pub fun removeTeam(ID: UInt64) {
+        access(self) fun removeTeam(ID: UInt64) {
+
+            // remove the capability from the teams dictionary
             self.teams[ID] = nil
 
+            // emit the event
             emit TeamRemovedFromLeague(teamID: ID, leagueID: self.ID)
+        }
+
+        // getRequestIDs returns an array of Team IDs that have registered to
+        // the league
+        //
+        pub fun getRequestIDs(): [UInt64] {
+            return self.requests.keys
         }
 
         // getTeamIDs returns an array of Team IDs that have registered to
@@ -134,13 +188,13 @@ pub contract Athletaverse {
     pub resource Team {
 
         // each team has a unique ID
-        pub let ID: UInt64
+        access(account) let ID: UInt64
 
         // team name
-        pub var name: String
+        access(account) var name: String
 
         // resource dictionary that contains athlete/player NFT capabilities
-        pub var roster: {UInt64: Capability?}
+        access(account) var roster: {UInt64: Capability?}
 
         init(ID: UInt64, name: String) {
             self.ID = ID
@@ -151,7 +205,7 @@ pub contract Athletaverse {
         }
 
         // updateTeamName sets the Team name to the provided value
-        pub fun updateTeamName(_ name: String) {
+        access(self) fun updateTeamName(_ name: String) {
             
             // store the old name for the event
             let previousName = self.name
@@ -166,7 +220,7 @@ pub contract Athletaverse {
         //
         // - allows the Athlete to participate in Team activities
         //
-        pub fun addAthleteToTeam(ID: UInt64, athleteCapability: Capability) {
+        access(self) fun addAthleteToTeam(ID: UInt64, athleteCapability: Capability) {
             self.roster[ID] = athleteCapability
 
             emit AthleteAddedToTeam(teamID: self.ID, athleteID: ID)
@@ -175,7 +229,7 @@ pub contract Athletaverse {
         // removeAthleteFromTeam removes an athlete's public capability from the Team roster
         //
         // - the Athlete can no longer participate in Team activities
-        pub fun removeAthleteFromTeam(ID: UInt64) {
+        access(self) fun removeAthleteFromTeam(ID: UInt64) {
             self.roster[ID] = nil
 
             emit AthleteRemovedFromTeam(teamID: self.ID, athleteID: ID)
