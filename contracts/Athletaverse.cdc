@@ -4,17 +4,17 @@
 //
 // TODO: Explain sports and league creation once prototyped
 // 
-
+// TODO: Add Collections for League and Team resource - are they NFTs or just similar resources?
 pub contract Athletaverse {
 
     // emitted when the contract is initialized
-    pub event AthletaverseInitialized()
+    pub event AthletaverseInitialized(totalLeagues: UInt64, totalTeams: UInt64)
 
     // totalLeagues represents the total number of Leagues that have been created
-    pub var totalLeagues: UInt64
+    access(contract) var totalLeagues: UInt64
 
     // totalTeams represents the total number of Teams that have been created
-    pub var totalTeams: UInt64
+    access(contract) var totalTeams: UInt64
 
     // TODO: Update Flow CLI to version that supports Enums
     // sports is an Enum representing the available sport types - used to determine equipment type
@@ -24,7 +24,7 @@ pub contract Athletaverse {
     //
     // - Leagues are a resource that will be stored in the commissioner's account storage,
     // so we need an easy way to find out where each league is stored. 
-    pub var commissioners: {UInt64: Address}
+    access(contract) var commissioners: {UInt64: Address}
 
     // teamOwners is a dictionary that maps each team ID to it's owner's Flow address
     //
@@ -69,5 +69,7 @@ pub contract Athletaverse {
 
         self.commissioners = {}
         self.teamOwners = {}
+
+        emit AthletaverseInitialized(totalLeagues: self.totalLeagues, totalTeams: self.totalTeams)
     }
 }
