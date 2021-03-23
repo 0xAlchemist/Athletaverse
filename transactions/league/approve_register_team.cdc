@@ -2,7 +2,7 @@
 
 // Registers a team to a League
 
-import Athletaverse from 0xf8d6e0586b0a20c7 //0x01cf0e2f2f715450
+import Athletaverse from 0xf8d6e0586b0a20c7
 
 transaction() {
     prepare(signer: AuthAccount) {

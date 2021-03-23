@@ -1,3 +1,5 @@
+import AthletaverseTeam from "./AthletaverseTeam.cdc"
+
 // LEAGUE
 //
 // A League allows a group of Teams to compete against eachother for a championship reward
@@ -39,7 +41,7 @@ pub contract AthletaverseLeague {
         // - this allows the Team to participate in the League's activities
         //
         pub fun registerTeam(teamCapability: Capability) {
-            if let team = teamCapability.borrow<&Team>() {
+            if let team = teamCapability.borrow<&AthletaverseTeam.Team>() {
                 self.teams[team.ID] = teamCapability
             } else {
                 log("Unable to get Team ID. Team was not registered")

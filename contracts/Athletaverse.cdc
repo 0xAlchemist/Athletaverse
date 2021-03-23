@@ -1,5 +1,5 @@
-import AthletaverseLeague from 0x01cf0e2f2f715450
-import AthletaverseTeam from 0x01cf0e2f2f715450
+import AthletaverseLeague from "./AthletaverseLeague.cdc"
+import AthletaverseTeam from "./AthletaverseTeam.cdc"
 
 // The main Athletaverse contract
 //
