@@ -1,3 +1,6 @@
+import AthletaverseLeague from 0x01cf0e2f2f715450
+import AthletaverseTeam from 0x01cf0e2f2f715450
+
 // The main Athletaverse contract
 //
 // This smart contract manages global state for the Athletaverse

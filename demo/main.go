@@ -7,8 +7,7 @@ import (
 func main() {
 	g := gwtf.
 		NewGoWithTheFlowEmulator().
-		InitializeContracts().
-		CreateAccount("user_1", "user_2")
+		CreateAccountPrintEvents("user_1", "user_2")
 
 	var ignoreFields = map[string][]string{
 		"flow.AccountCodeUpdated": {"codeHash"},

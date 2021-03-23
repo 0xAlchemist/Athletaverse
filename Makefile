@@ -1,6 +1,10 @@
 all: demo
 
+.PHONY: deploy
+deploy: 
+		flow project deploy
+
 .PHONY: demo
-demo:
-	go run ./demo/main.go
+demo: deploy
+		go run ./demo/main.go
 
