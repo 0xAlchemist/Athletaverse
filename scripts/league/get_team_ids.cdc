@@ -9,7 +9,7 @@ pub fun main(account: Address) {
 
     let leagueCapability = account.getCapability(/public/AthletaverseLeague)
 
-    let leagueReference = leagueCapability?.borrow<&Athletaverse.League>()
+    let leagueReference = leagueCapability.borrow<&Athletaverse.League>()
     ?? panic("unable to borrow the League reference")
 
     log(leagueReference!.getTeamIDs())
