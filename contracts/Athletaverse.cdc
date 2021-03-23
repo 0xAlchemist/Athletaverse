@@ -6,10 +6,7 @@
 // 
 // TODO: Add Collections for League and Team resource - are they NFTs or just similar resources?
 pub contract Athletaverse {
-
-    // emitted when the contract is initialized
-    pub event AthletaverseInitialized(totalLeagues: UInt64, totalTeams: UInt64)
-
+    
     // totalLeagues represents the total number of Leagues that have been created
     access(contract) var totalLeagues: UInt64
 
@@ -69,7 +66,5 @@ pub contract Athletaverse {
 
         self.commissioners = {}
         self.teamOwners = {}
-
-        emit AthletaverseInitialized(totalLeagues: self.totalLeagues, totalTeams: self.totalTeams)
     }
 }
