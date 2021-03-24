@@ -1,31 +1,71 @@
 {
-	"address": "127.0.0.1:3569",
-	"gasLimit": 1000,
-	"accounts": {
-		"service": {
-		"address": "f8d6e0586b0a20c7",
-		"privateKey": "bf9db4706c2fdb9011ee7e170ccac492f05427b96ab41d8bf2d8c58443704b76",
-		"sigAlgorithm": "ECDSA_P256",
-		"hashAlgorithm": "SHA3_256"
-		}
-	},
-	"emulatorAccounts": {
-		"accounts": "01cf0e2f2f715450",
-		"user_1": "179b6b1cb6755e31",
-		"user_2": "f3fcd2c1a78f5eee",
-		"user_4": "e03daebed8ca0615",
-		"user_5": "045a1763c93006ca",
-		"user_6": "120e725050340cab",
-		"user_7": "f669cb8d41ce0c74",
-		"user_8": "192440c99cb17282",
-		"user_9": "fd43f9148d4b725d",
-		"user_10": "eb179c27144f783c"
-	},
-	"webHooks": {
-		"gwtf": {
-		"id": "<id of webhook>",
-		"token": "<token of webhook>",
-		"wait": true
-		}
-	}
-}
+    "contracts": {
+      "Athletaverse": "./contracts/Athletaverse.cdc",
+      "AthletaverseLeague":  "./contracts/AthletaverseLeague.cdc",
+      "AthletaverseTeam":  "./contracts/AthletaverseTeam.cdc"
+    },
+    "deployments": {
+      "emulator": {
+        "emulator-account": [
+          "Athletaverse",
+          "AthletaverseLeague",
+          "AthletaverseTeam"
+        ]
+      }
+    },
+    "emulators": {
+      "default": {
+        "port": 3569,
+        "serviceAccount": "emulator-account"
+      }
+    },
+    "accounts": {
+      "emulator-account": {
+        "address": "f8d6e0586b0a20c7",
+        "keys": "bf9db4706c2fdb9011ee7e170ccac492f05427b96ab41d8bf2d8c58443704b76",
+        "chain": "flow-emulator"
+      },
+      "user_1": {
+        "address": "01cf0e2f2f715450",
+        "keys": "bf9db4706c2fdb9011ee7e170ccac492f05427b96ab41d8bf2d8c58443704b76",
+        "chain": "flow-emulator"
+      },
+      "user_2": {
+        "address": "179b6b1cb6755e31",
+        "keys": "bf9db4706c2fdb9011ee7e170ccac492f05427b96ab41d8bf2d8c58443704b76",
+        "chain": "flow-emulator"
+      },
+      "emulator3": {
+        "address": "f3fcd2c1a78f5eee",
+        "keys": "bf9db4706c2fdb9011ee7e170ccac492f05427b96ab41d8bf2d8c58443704b76",
+        "chain": "flow-emulator"
+      },
+      "emulator4": {
+        "address": "e03daebed8ca0615",
+        "keys": "bf9db4706c2fdb9011ee7e170ccac492f05427b96ab41d8bf2d8c58443704b76",
+        "chain": "flow-emulator"
+      },
+      "emulator5": {
+        "address": "045a1763c93006ca",
+        "keys": "bf9db4706c2fdb9011ee7e170ccac492f05427b96ab41d8bf2d8c58443704b76",
+        "chain": "flow-emulator"
+      }
+    },
+    "networks": {
+      "emulator": {
+        "host": "127.0.0.1:3569",
+        "serviceAccount": "emulator-account",
+        "chain": "flow-emulator"
+      }
+    },
+    "comment": "EVERYTHING AFTER THIS IS GWTF SPECIFIC",
+    "webHooks": {
+      "gwtf": {
+        "id": "<id of webhook>",
+        "token": "<token of webhook>",
+        "wait": true
+      }
+    },
+    "gasLimit": 1000
+  }
+ 
