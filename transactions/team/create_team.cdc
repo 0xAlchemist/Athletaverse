@@ -5,6 +5,7 @@
 //
 
 import Athletaverse from 0xf8d6e0586b0a20c7
+import AthletaverseTeam from 0xf8d6e0586b0a20c7
 
 transaction() {
     prepare(signer: AuthAccount) {
@@ -16,6 +17,6 @@ transaction() {
         signer.save(<-newTeam, to: /storage/AthletaverseTeam)
 
         // link a public capability to the Team
-        signer.link<&Athletaverse.Team>(/public/AthletaverseTeam, target: /storage/AthletaverseTeam)
+        signer.link<&AthletaverseTeam.Team>(/public/AthletaverseTeam, target: /storage/AthletaverseTeam)
     }
 }

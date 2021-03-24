@@ -28,19 +28,7 @@ func main() {
 
 	// Request to register the team to the league
 	g.
-		TransactionFromFile("team/request_register_team").
-		SignProposeAndPayAs("user_1").
-		RunPrintEvents(ignoreFields)
-
-	// Check the team IDs requested to register to the league
-	g.
-		ScriptFromFile("league/get_request_ids").
-		AccountArgument("user_1").
-		Run()
-
-	// Request to register the team to the league
-	g.
-		TransactionFromFile("league/approve_register_team").
+		TransactionFromFile("team/register_team").
 		SignProposeAndPayAs("user_1").
 		RunPrintEvents(ignoreFields)
 

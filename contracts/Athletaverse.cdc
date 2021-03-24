@@ -46,7 +46,7 @@ pub contract Athletaverse {
         Athletaverse.totalLeagues = Athletaverse.totalLeagues + 1 as UInt64
 
         // return the new League
-        return <- create AthletaverseLeague.League(ID: ID, name: name)
+        return <- AthletaverseLeague.createNewLeague(ID: ID, name: name)
     }
 
     // createNewTeam creates a new Team resource and returns it to the caller
@@ -59,7 +59,7 @@ pub contract Athletaverse {
         Athletaverse.totalTeams = Athletaverse.totalTeams + 1 as UInt64
         
         // return the new Team to the caller
-        return <- create AthletaverseTeam.Team(ID: teamID, name: teamName)
+        return <- AthletaverseTeam.createNewTeam(ID: teamID, name: teamName)
     }
 
     init() {

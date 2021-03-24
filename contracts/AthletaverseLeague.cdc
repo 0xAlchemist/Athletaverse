@@ -66,5 +66,10 @@ pub contract AthletaverseLeague {
         }
     }
 
+    pub fun createNewLeague(ID: UInt64, name: String): @League {
+        // return the new League
+        return <- create League(ID: ID, name: name)
+    }
+
     init() {}
 }

@@ -82,5 +82,10 @@
             }
         }
 
+        pub fun createNewTeam(ID: UInt64, name: String): @Team {
+            // return the new Team to the caller
+            return <- create Team(ID: ID, name: name)
+        }
+
         init() {}
     }
