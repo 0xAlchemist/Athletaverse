@@ -1,6 +1,9 @@
-// request_register_team.cdc
+// register_team.cdc
 
 // Registers a team to a League
+
+// TODO: Update this to add the team to a queue
+// for approval by the league manager
 
 import Athletaverse from 0xf8d6e0586b0a20c7
 import AthletaverseLeague from 0xf8d6e0586b0a20c7

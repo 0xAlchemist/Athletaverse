@@ -14,5 +14,5 @@ pub fun main(account: Address) {
     let leagueReference = leagueCapability.borrow<&AthletaverseLeague.League>()
     ?? panic("unable to borrow the League reference")
 
-    log(leagueReference!.getTeamIDs())
+    log(leagueReference.getTeamIDs())
 }

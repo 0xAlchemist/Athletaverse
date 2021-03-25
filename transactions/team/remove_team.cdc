@@ -1,6 +1,9 @@
 // request_register_team.cdc
 
-// Registers a team to a League
+// Removes a team from a League
+
+// TODO: Only the team owner and league manager should
+// have this capability
 
 import Athletaverse from 0xf8d6e0586b0a20c7
 import AthletaverseLeague from 0xf8d6e0586b0a20c7
