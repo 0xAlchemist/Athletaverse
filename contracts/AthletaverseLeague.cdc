@@ -69,6 +69,19 @@ pub contract AthletaverseLeague {
         pub fun getTeamIDs(): [UInt64] {
             return self.teams.keys
         }
+
+        pub fun getTeamInfo(): {UInt64: String} {
+            let teamIDs = self.getTeamIDs()
+            var teamInfo: {UInt64: String} = {}
+
+            for id in teamIDs {
+                if let teamReference = self.teams[id]!!.borrow<&AthletaverseTeam.Team>() {
+                    teamInfo[id] = teamReference.getTeamName()   
+                }
+            }
+
+            return teamInfo
+        }
     }
 
     pub fun createNewLeague(ID: UInt64, name: String, rosterSize: Int): @League {
