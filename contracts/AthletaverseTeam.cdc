@@ -16,6 +16,8 @@
         // emitted whenever an Athlere is removed from a Team
         pub event AthleteRemovedFromTeam(teamID: UInt64, athleteID: UInt64)
 
+        // Teams are a resource are a resource that represents a roster of Athlete NFTs. 
+        // Teams can also be assigned to Leagues.
         pub resource Team {
 
             // each team has a unique ID

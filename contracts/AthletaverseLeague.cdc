@@ -16,6 +16,7 @@ pub contract AthletaverseLeague {
     // emitted when a Team has been removed from a League
     pub event TeamRemovedFromLeague(teamID: UInt64, leagueID: UInt64)
 
+    // Leagues are a resource that represents a collection of Teams.
     pub resource League {
 
         // Each League has a unique ID
