@@ -38,4 +38,17 @@ func main() {
 		AccountArgument("user_1").
 		Run()
 
+	// Remove the team from the league
+	g.
+		TransactionFromFile("team/remove_team").
+		UInt64Argument(0).
+		SignProposeAndPayAs("user_1").
+		RunPrintEvents(ignoreFields)
+
+	// Check the team IDs registered to the league
+	g.
+		ScriptFromFile("league/get_team_ids").
+		AccountArgument("user_1").
+		Run()
+
 }

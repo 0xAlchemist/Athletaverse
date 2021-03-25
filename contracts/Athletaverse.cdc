@@ -67,6 +67,9 @@ pub contract Athletaverse {
         self.totalLeagues = 0
         self.totalTeams = 0
 
+        // TODO: Save Admin resource and use singleton pattern 
+        // to prevent duplicate deployments
+
         self.commissioners = {}
         self.teamOwners = {}
     }
