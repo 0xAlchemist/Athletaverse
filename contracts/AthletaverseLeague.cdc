@@ -19,20 +19,24 @@ pub contract AthletaverseLeague {
     // Leagues are a resource that represents a collection of Teams.
     pub resource League {
 
-        // Each League has a unique ID
+        // each League has a unique ID
         pub let ID: UInt64
 
-        // Each League has a human readable name
+        // each League has a human readable name
         pub let name: String
 
         // teams maps the ID for each Team registered to the league to it's Capability
         // TODO: define the capability type
         pub let teams: {UInt64: Capability?}
 
-        init(ID: UInt64, name: String) {
+        // max amount of players per team
+        pub let rosterSize: Int
+
+        init(ID: UInt64, name: String, rosterSize: Int) {
             self.ID = ID
             self.name = name
             self.teams = {}
+            self.rosterSize = rosterSize
 
             emit NewLeagueCreated(ID)
         }
@@ -67,9 +71,9 @@ pub contract AthletaverseLeague {
         }
     }
 
-    pub fun createNewLeague(ID: UInt64, name: String): @League {
+    pub fun createNewLeague(ID: UInt64, name: String, rosterSize: Int): @League {
         // return the new League
-        return <- create League(ID: ID, name: name)
+        return <- create League(ID: ID, name: name, rosterSize: rosterSize)
     }
 
     init() {}

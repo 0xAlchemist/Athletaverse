@@ -37,7 +37,7 @@ pub contract Athletaverse {
     // spam League creation
     // 
     // createNewLeague creates a new League resource and returns it to the caller
-    pub fun createNewLeague(name: String): @AthletaverseLeague.League {
+    pub fun createNewLeague(name: String, rosterSize: Int): @AthletaverseLeague.League {
         
         // set the league ID to the total number of leagues
         let ID = Athletaverse.totalLeagues
@@ -46,10 +46,15 @@ pub contract Athletaverse {
         Athletaverse.totalLeagues = Athletaverse.totalLeagues + 1 as UInt64
 
         // return the new League
-        return <- AthletaverseLeague.createNewLeague(ID: ID, name: name)
+        return <- AthletaverseLeague.createNewLeague(ID: ID, name: name, rosterSize: rosterSize)
     }
 
     // createNewTeam creates a new Team resource and returns it to the caller
+    //
+    // TODO: Pick an option:
+    // - First team free, additional teams require payment
+    // - All teams require payment
+    // - One team per user
     pub fun createNewTeam(teamName: String): @AthletaverseTeam.Team {
         
         // set the total Teams count as the teamID

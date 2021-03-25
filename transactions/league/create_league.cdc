@@ -11,7 +11,7 @@ transaction() {
     prepare(signer: AuthAccount) {
         
         // create a new League
-        let newLeague <- Athletaverse.createNewLeague(name: "Alpha League")
+        let newLeague <- Athletaverse.createNewLeague(name: "Metaverse Hockey League", rosterSize: 24)
 
         // save the League to account storage
         signer.save(<-newLeague, to: /storage/AthletaverseLeague)
