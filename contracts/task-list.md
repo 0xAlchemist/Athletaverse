@@ -21,8 +21,8 @@ This contract defines the League resource.
 - [x] Remove Team
 - [x] Get Team IDs
 - [x] Get Team Info
-- [ ] Support multiple leagues (Collection pattern)
-
+- [ ] Support multiple leagues (Collection pattern -> NFT?)
+- [ ] Should there be an approval queue for addTeam?
 ## AthletaverseTeam
 This contract defines the Team resource.
 
@@ -30,7 +30,8 @@ This contract defines the Team resource.
 - [x] Remove Athlete from Team
 - [x] Update Team Name
 - [x] Get Athlete IDs
-- [ ] Support multiple teams (Collection pattern)
+- [ ] Support multiple teams (Collection pattern -> NFT?)
+- [ ] Should there be an approval queue for addAthlete?
 
 ## AthletaverseAthlete
 This contract defines the Athlete NFT.
