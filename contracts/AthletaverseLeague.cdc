@@ -34,12 +34,12 @@ pub contract AthletaverseLeague {
 
         // teams maps the ID for each Team registered to the league to it's Capability
         // TODO: define the capability type
-        pub let teams: @AthletaverseUtils.QueuedCapabilityManager
+        pub let teams: AthletaverseUtils.QueuedCapabilityManager
 
         init(ID: UInt64, name: String, rosterSize: Int) {
             self.ID = ID
             self.name = name
-            self.teams <- AthletaverseUtils.createQueuedCapabilityManager(limit: rosterSize)
+            self.teams = AthletaverseUtils.newQueuedCapabilityManager(limit: rosterSize)
 
             emit NewLeagueCreated(ID)
         }
@@ -91,21 +91,23 @@ pub contract AthletaverseLeague {
             return self.teams.approved.keys
         }
 
+        // get TeamInfo returns a dictionary with basic team info {ID: name}
         pub fun getTeamInfo(): {UInt64: String} {
             let teamIDs = self.getTeamIDs()
             var teamInfo: {UInt64: String} = {}
 
+            // for each team ID...
             for id in teamIDs {
+                
+                // ... if the Capability exists, borrow a reference to the Team
                 if let teamReference = self.teams.approved[id]!!.borrow<&AthletaverseTeam.Team>() {
+                    
+                    // ... add the team name to the teamInfo dictionary
                     teamInfo[id] = teamReference.getTeamName()   
                 }
             }
 
             return teamInfo
-        }
-
-        destroy() {
-            destroy(self.teams)
         }
     }
 
