@@ -1,3 +1,4 @@
+import AthletaverseUtils from "./AthletaverseUtils.cdc"
 import AthletaverseTeam from "./AthletaverseTeam.cdc"
 
 // LEAGUE
@@ -16,6 +17,12 @@ pub contract AthletaverseLeague {
     // emitted when a Team has been removed from a League
     pub event TeamRemovedFromLeague(teamID: UInt64, leagueID: UInt64)
 
+    // emitted when the league owner approves a new Team
+    pub event AddTeamApproved(teamID: UInt64, leagueID: UInt64)
+    
+    // emitted when the league owner rejects a new Team
+    pub event AddTeamRejected(teamID: UInt64, leagueID: UInt64)
+
     // Leagues are a resource that represents a collection of Teams.
     pub resource League {
 
@@ -27,47 +34,61 @@ pub contract AthletaverseLeague {
 
         // teams maps the ID for each Team registered to the league to it's Capability
         // TODO: define the capability type
-        pub let teams: {UInt64: Capability?}
-
-        // max amount of players per team
-        pub let rosterSize: Int
+        pub let teams: @AthletaverseUtils.QueuedCapabilityManager
 
         init(ID: UInt64, name: String, rosterSize: Int) {
             self.ID = ID
             self.name = name
-            self.teams = {}
-            self.rosterSize = rosterSize
+            self.teams <- AthletaverseUtils.createQueuedCapabilityManager(limit: rosterSize)
 
             emit NewLeagueCreated(ID)
         }
 
-        // registerTeam adds a Team's public capability to the League
-        //
-        // - this allows the Team to participate in the League's activities
+        // registerTeam adds a Team's public capability to the approval queue
         //
         pub fun registerTeam(teamCapability: Capability) {
             if let team = teamCapability.borrow<&AthletaverseTeam.Team>() {
-                self.teams[team.ID] = teamCapability
+                self.teams.addCapability(id: team.ID, capability: teamCapability)
+
+                emit TeamRegisteredToLeague(teamID: team.ID, leagueID: self.ID)
             } else {
                 log("Unable to get Team ID. Team was not registered")
             }
+        }
+        
+        // approveTeam adds a Team's public capability to the League
+        //
+        // - this allows the Team to participate in the League's activities
+        //
+        pub fun approveTeam(_ id: UInt64) {
+            self.teams.approveRequest(id)
+            
+            emit AddTeamApproved(teamID: id, leagueID: self.ID)
+        }
+
+        // rejectTeam removes a Team's public capability from the League
+        //
+        pub fun rejectTeam(_ id: UInt64) {
+            self.teams.rejectRequest(id)
+
+            emit AddTeamRejected(teamID: id, leagueID: self.ID)
         }
         
         // removeTeam removes the Team's public capability from the League
         //
         // - this team will no longer be able to participate in the League's activities
         //
-        pub fun removeTeam(ID: UInt64) {
-            self.teams[ID] = nil
+        pub fun removeTeam(_ id: UInt64) {
+            self.teams.removeCapability(id)
 
-            emit TeamRemovedFromLeague(teamID: ID, leagueID: self.ID)
+            emit TeamRemovedFromLeague(teamID: id, leagueID: self.ID)
         }
 
         // getTeamIDs returns an array of Team IDs that have registered to
         // the league
         //
         pub fun getTeamIDs(): [UInt64] {
-            return self.teams.keys
+            return self.teams.approved.keys
         }
 
         pub fun getTeamInfo(): {UInt64: String} {
@@ -75,12 +96,16 @@ pub contract AthletaverseLeague {
             var teamInfo: {UInt64: String} = {}
 
             for id in teamIDs {
-                if let teamReference = self.teams[id]!!.borrow<&AthletaverseTeam.Team>() {
+                if let teamReference = self.teams.approved[id]!!.borrow<&AthletaverseTeam.Team>() {
                     teamInfo[id] = teamReference.getTeamName()   
                 }
             }
 
             return teamInfo
+        }
+
+        destroy() {
+            destroy(self.teams)
         }
     }
 
@@ -88,6 +113,4 @@ pub contract AthletaverseLeague {
         // return the new League
         return <- create League(ID: ID, name: name, rosterSize: rosterSize)
     }
-
-    init() {}
 }

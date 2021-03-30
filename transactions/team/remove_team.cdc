@@ -19,6 +19,6 @@ transaction(teamID: UInt64) {
         ?? panic ("could not borrow league capability")
 
         // register the Team to the League
-        leagueReference.removeTeam(ID: teamID)
+        leagueReference.removeTeam(teamID)
     }
 }

@@ -17,6 +17,6 @@ transaction() {
         ?? panic ("could not borrow league capability")
 
         // register the Team to the League
-        leagueReference.approveRegisterTeam(teamID: UInt64(0))
+        leagueReference.approveTeam(UInt64(0))
     }
 }
