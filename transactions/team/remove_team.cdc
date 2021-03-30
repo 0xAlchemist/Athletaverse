@@ -5,8 +5,8 @@
 // TODO: Only the team owner and league manager should
 // have this capability
 
-import Athletaverse from 0xf8d6e0586b0a20c7
-import AthletaverseLeague from 0xf8d6e0586b0a20c7
+import Athletaverse from 0x01cf0e2f2f715450
+import AthletaverseLeague from 0x01cf0e2f2f715450
 
 transaction(teamID: UInt64) {
     prepare(signer: AuthAccount) {

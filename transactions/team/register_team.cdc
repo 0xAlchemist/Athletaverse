@@ -5,8 +5,8 @@
 // TODO: Update this to add the team to a queue
 // for approval by the league manager
 
-import Athletaverse from 0xf8d6e0586b0a20c7
-import AthletaverseLeague from 0xf8d6e0586b0a20c7
+import Athletaverse from 0x01cf0e2f2f715450
+import AthletaverseLeague from 0x01cf0e2f2f715450
 
 transaction() {
     prepare(signer: AuthAccount) {

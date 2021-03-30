@@ -1,7 +1,11 @@
 all: demo
 
+.PHONY: setup
+setup: 
+	go run ./demo/setup/main.go
+
 .PHONY: deploy
-deploy: 
+deploy: setup
 		flow project deploy
 
 .PHONY: demo
