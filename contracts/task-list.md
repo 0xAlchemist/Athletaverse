@@ -52,5 +52,5 @@ This contract defines the Gear NFT.
 ## Restricted Capabilities
 Some methods will be restricted to the owners of certain admin resources:
 
-£ = League Admin
-π = NFT Admin
+- £ = League Admin
+- π = NFT Admin
