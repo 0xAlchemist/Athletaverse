@@ -5,13 +5,13 @@
 pub contract AthletaverseUtils {
 
     // Requesters can request to add capabilities
-    pub struct interface Requester {
+    pub resource interface Requester {
         pub fun addCapability(id: UInt64, capability: Capability)
     }
 
     // Managers can approve and reject requests as well as remove approved
     // capabilities
-    pub struct interface Manager {
+    pub resource interface Manager {
         pub fun approveRequest(_ id: UInt64)
         pub fun rejectRequest(_ id: UInt64)
         pub fun removeCapability(_ id: UInt64)
@@ -19,7 +19,7 @@ pub contract AthletaverseUtils {
 
     // Allows the manager to handle queued requests to add Capabilities
     // to a dictionary
-    pub struct QueuedCapabilityManager: Requester, Manager {
+    pub resource QueuedCapabilityManager: Requester, Manager {
 
         // the queued capabilities
         pub var queue: {UInt64: Capability?}
@@ -77,7 +77,7 @@ pub contract AthletaverseUtils {
         }
     }
 
-    pub fun newQueuedCapabilityManager(limit: Int): QueuedCapabilityManager {
-        return QueuedCapabilityManager(limit: limit)
+    pub fun newQueuedCapabilityManager(limit: Int): @QueuedCapabilityManager {
+        return <- create QueuedCapabilityManager(limit: limit)
     }
 }

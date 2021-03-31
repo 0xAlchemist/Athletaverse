@@ -34,12 +34,12 @@ pub contract AthletaverseLeague {
 
         // teams maps the ID for each Team registered to the league to it's Capability
         // TODO: define the capability type
-        pub let teams: AthletaverseUtils.QueuedCapabilityManager
+        pub let teams: @AthletaverseUtils.QueuedCapabilityManager
 
         init(ID: UInt64, name: String, rosterSize: Int) {
             self.ID = ID
             self.name = name
-            self.teams = AthletaverseUtils.newQueuedCapabilityManager(limit: rosterSize)
+            self.teams <- AthletaverseUtils.newQueuedCapabilityManager(limit: rosterSize)
 
             emit NewLeagueCreated(ID)
         }
@@ -60,6 +60,7 @@ pub contract AthletaverseLeague {
         //
         // - this allows the Team to participate in the League's activities
         //
+        // TODO: Should only be called by league admin
         pub fun approveTeam(_ id: UInt64) {
             self.teams.approveRequest(id)
             
@@ -68,6 +69,7 @@ pub contract AthletaverseLeague {
 
         // rejectTeam removes a Team's public capability from the League
         //
+        // TODO: Should only be called by league admin
         pub fun rejectTeam(_ id: UInt64) {
             self.teams.rejectRequest(id)
 
@@ -78,6 +80,7 @@ pub contract AthletaverseLeague {
         //
         // - this team will no longer be able to participate in the League's activities
         //
+        // TODO: Should only be called by league admin
         pub fun removeTeam(_ id: UInt64) {
             self.teams.removeCapability(id)
 
@@ -108,6 +111,10 @@ pub contract AthletaverseLeague {
             }
 
             return teamInfo
+        }
+
+        destroy () {
+            destroy(self.teams)
         }
     }
 
