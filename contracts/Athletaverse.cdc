@@ -9,9 +9,6 @@ import AthletaverseTeam from "./AthletaverseTeam.cdc"
 // 
 // TODO: Add Collections for League and Team resource - are they NFTs or just similar resources?
 pub contract Athletaverse {
-    
-    // totalLeagues represents the total number of Leagues that have been created
-    access(contract) var totalLeagues: UInt64
 
     // totalTeams represents the total number of Teams that have been created
     access(contract) var totalTeams: UInt64
@@ -22,12 +19,6 @@ pub contract Athletaverse {
     // 
     // createNewLeague creates a new League resource and returns it to the caller
     pub fun createNewLeague(name: String, rosterSize: Int): @AthletaverseLeague.League {
-        
-        // set the league ID to the total number of leagues
-        let ID = Athletaverse.totalLeagues
-
-        // increment the total number of leagues by one
-        Athletaverse.totalLeagues = Athletaverse.totalLeagues + 1 as UInt64
 
         // return the new League
         return <- AthletaverseLeague.createNewLeague(ID: ID, name: name, rosterSize: rosterSize)
