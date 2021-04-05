@@ -32,8 +32,11 @@ pub contract AthletaverseLeague: NonFungibleToken {
     // emitted when a new League is created
     pub event NewLeagueCreated(_ ID: UInt64)
 
-    // emitted when a new LeagueMinter has been created
-    pub event NewLeagueAdmin(_ account: Address)
+    // emitted when a new LeagueMinter has been approved
+    pub event NewLeagueMinterCreated(_ account: Address)
+    
+    // emitted when a new LeagueMinter capability has been created
+    pub event NewLeagueMinterRequested(_ account: Address)
 
     // emitted when a Team has been registered to a League
     pub event TeamRegisteredToLeague(teamID: UInt64, leagueID: UInt64)
@@ -196,16 +199,27 @@ pub contract AthletaverseLeague: NonFungibleToken {
         return <- create Collection()
     }
 
+    // creates a collection, saves it to the signer's account storage
+    // and links a public capability to the CollectionPublic interface
+    //
+    access(contract) fun setupAccountCollection(_ signer: AuthAccount) {
+        let collection <- self.createEmptyCollection()
 
-    pub fun setupLeagueCollection(signer: AuthAccount) {
-        let leagueCollection <- self.createEmptyCollection()
-
-        signer.save(<-leagueCollection, to: self.leagueCollectionStoragePath)
+        signer.save(<-collection, to: self.leagueCollectionStoragePath)
 
         signer.link<&Collection{NonFungibleToken.CollectionPublic}>(
             self.leagueCollectionPublicPath,
             target: self.leagueCollectionStoragePath
         )
+    }
+
+    pub fun requestLeagueMintingCapability(signer: AuthAccount) {
+        // setup the league Collection
+        self.setupAccountCollection(signer)
+
+        // TODO: setup capability receiver
+
+        emit NewLeagueMinterRequested(signer.address)
     }
 
     // allows the owner of the resource to mint a new League NFT
@@ -251,7 +265,7 @@ pub contract AthletaverseLeague: NonFungibleToken {
                 target: AthletaverseLeague.leagueMinterStoragePath
             )
 
-            emit NewLeagueAdmin(signer.address)
+            emit NewLeagueMinterCreated(signer.address)
         }
     }
 
@@ -272,7 +286,7 @@ pub contract AthletaverseLeague: NonFungibleToken {
         self.leagueCollectionStoragePath = /storage/AthletaverseLeagueCollection
         self.leagueCollectionPublicPath = /public/AthletaverseLeagueCollection
 
-        // Setup the Admin with init singleton
+        // Setup the Admin with (slightly modified for tooling) init singleton
         // - prevents additional LeagueSuperAdmin resources
         // - https://docs.onflow.org/cadence/design-patterns/#init-singleton
 
@@ -289,7 +303,7 @@ pub contract AthletaverseLeague: NonFungibleToken {
         )
 
         // Setup the initializer's League Collection
-        self.setupLeagueCollection(signer: self.account)
+        self.setupAccountCollection(self.account)
 
         emit ContractInitialized()
     }
