@@ -12,24 +12,28 @@ pub contract AthletaverseLeague: NonFungibleToken {
     // total amount of Leagues minted
     pub var totalSupply: UInt64
 
-    // emitted when the contract is initialized
+    // LeagueMinter paths
+    pub var leagueMinterStoragePath: StoragePath
+    pub var leagueMinterPrivatePath: PrivatePath
+
+    // LeagueSuperAdmin paths
+    pub var leagueSuperAdminStoragePath: StoragePath
+    pub var approvedLeagueMinterPrivatePath: PrivatePath
+    
+    // Collection paths
+    pub var leagueCollectionStoragePath: StoragePath
+    pub var leagueCollectionPublicPath: PublicPath
+
+    // events from the NFT standard
     pub event ContractInitialized()
-
-    // Event that is emitted when a token is withdrawn,
-    // indicating the owner of the collection that it was withdrawn from.
-    //
-    // If the collection is not in an account's storage, `from` will be `nil`.
-    //
     pub event Withdraw(id: UInt64, from: Address?)
-
-    // Event that emitted when a token is deposited to a collection.
-    //
-    // It indicates the owner of the collection that it was deposited to.
-    //
     pub event Deposit(id: UInt64, to: Address?)
     
     // emitted when a new League is created
     pub event NewLeagueCreated(_ ID: UInt64)
+
+    // emitted when a new LeagueMinter has been created
+    pub event NewLeagueAdmin(_ account: Address)
 
     // emitted when a Team has been registered to a League
     pub event TeamRegisteredToLeague(teamID: UInt64, leagueID: UInt64)
@@ -47,7 +51,7 @@ pub contract AthletaverseLeague: NonFungibleToken {
     pub resource NFT: NonFungibleToken.INFT {
 
         // each League has a unique ID
-        pub let ID: UInt64
+        pub let id: UInt64
 
         // each League has a human readable name
         pub let name: String
@@ -57,7 +61,7 @@ pub contract AthletaverseLeague: NonFungibleToken {
         pub let teams: @AthletaverseUtils.QueuedCapabilityManager
 
         init(ID: UInt64, name: String, rosterSize: Int) {
-            self.ID = ID
+            self.id = ID
             self.name = name
             self.teams <- AthletaverseUtils.newQueuedCapabilityManager(limit: rosterSize)
 
@@ -70,7 +74,7 @@ pub contract AthletaverseLeague: NonFungibleToken {
             if let team = teamCapability.borrow<&AthletaverseTeam.Team>() {
                 self.teams.addCapability(id: team.ID, capability: teamCapability)
 
-                emit TeamRegisteredToLeague(teamID: team.ID, leagueID: self.ID)
+                emit TeamRegisteredToLeague(teamID: team.ID, leagueID: self.id)
             } else {
                 log("Unable to get Team ID. Team was not registered")
             }
@@ -84,7 +88,7 @@ pub contract AthletaverseLeague: NonFungibleToken {
         pub fun approveTeam(_ id: UInt64) {
             self.teams.approveRequest(id)
             
-            emit AddTeamApproved(teamID: id, leagueID: self.ID)
+            emit AddTeamApproved(teamID: id, leagueID: self.id)
         }
 
         // rejectTeam removes a Team's public capability from the League
@@ -93,7 +97,7 @@ pub contract AthletaverseLeague: NonFungibleToken {
         pub fun rejectTeam(_ id: UInt64) {
             self.teams.rejectRequest(id)
 
-            emit AddTeamRejected(teamID: id, leagueID: self.ID)
+            emit AddTeamRejected(teamID: id, leagueID: self.id)
         }
         
         // removeTeam removes the Team's public capability from the League
@@ -104,7 +108,7 @@ pub contract AthletaverseLeague: NonFungibleToken {
         pub fun removeTeam(_ id: UInt64) {
             self.teams.removeCapability(id)
 
-            emit TeamRemovedFromLeague(teamID: id, leagueID: self.ID)
+            emit TeamRemovedFromLeague(teamID: id, leagueID: self.id)
         }
 
         // getTeamIDs returns an array of Team IDs that have registered to
@@ -139,7 +143,7 @@ pub contract AthletaverseLeague: NonFungibleToken {
     }
 
     pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic {
-                // dictionary of NFT conforming tokens
+        // dictionary of NFT conforming tokens
         // NFT is a resource type with an `UInt64` ID field
         pub var ownedNFTs: @{UInt64: NonFungibleToken.NFT}
 
@@ -187,21 +191,106 @@ pub contract AthletaverseLeague: NonFungibleToken {
         }
     }
 
-    // anyone can create an empty Collection
+    // create an empty Collection
     pub fun createEmptyCollection(): @NonFungibleToken.Collection {
         return <- create Collection()
     }
 
-    // mint a new league and return it to the caller
-    pub fun createNewLeague(name: String, rosterSize: Int): @NFT {
+
+    pub fun setupLeagueCollection(signer: AuthAccount) {
+        let leagueCollection <- self.createEmptyCollection()
+
+        signer.save(<-leagueCollection, to: self.leagueCollectionStoragePath)
+
+        signer.link<&Collection{NonFungibleToken.CollectionPublic}>(
+            self.leagueCollectionPublicPath,
+            target: self.leagueCollectionStoragePath
+        )
+    }
+
+    // allows the owner of the resource to mint a new League NFT
+    pub resource LeagueMinter {
+        // mint a new league and return it to the caller
+        pub fun createNewLeague(name: String, rosterSize: Int): @AthletaverseLeague.NFT {
+            
+            // Increment the totalSupply to get the League ID
+            var ID = AthletaverseLeague.totalSupply + 1 as UInt64
+
+            // Update the total supply to include the new League
+            AthletaverseLeague.totalSupply = ID
+
+            emit NewLeagueCreated(ID)
+
+            // return the new League
+            return <- create NFT(ID: ID, name: name, rosterSize: rosterSize)
+        }
+    }
+
+    // The ApprovedLeagueMinter capability will be provided to
+    // accounts that have been approved to create new Leagues
+    //
+    pub resource interface ApprovedLeagueMinter {
+        pub fun createLeagueMinter(signer: AuthAccount)
+    }
+
+    // Allows owner to create a new LeagueMinter resource
+    pub resource LeagueSuperAdmin: ApprovedLeagueMinter {
+
+        // returns a new LeagueMinter resource to the caller
+        //
+        // TODO: going to need a capability receiver here
+        // to pass this functionality to an approved caller
+        pub fun createLeagueMinter(signer: AuthAccount) {
+            
+            let minter <- create LeagueMinter()
+            
+            signer.save(<- minter, to: /storage/AthletaverseLeagueMinter)
+
+            signer.link<&LeagueMinter>(
+                AthletaverseLeague.leagueMinterPrivatePath,
+                target: AthletaverseLeague.leagueMinterStoragePath
+            )
+
+            emit NewLeagueAdmin(signer.address)
+        }
+    }
+
+    init() {
+
+        // Set initial total supply to zero
+        self.totalSupply = 0 as UInt64
+
+        // Setup reusable paths for the LeagueMinter resource
+        self.leagueMinterStoragePath = /storage/AthletaverseLeagueMinter
+        self.leagueMinterPrivatePath = /private/AthletaverseLeagueMinter
         
-        // Increment the totalSupply to get the League ID
-        var ID = self.totalSupply + 1 as UInt64
+        // Setup reusable paths for the LeagueSuperAdmin resource
+        self.leagueSuperAdminStoragePath = /storage/AthletaverseLeagueSuperAdmin
+        self.approvedLeagueMinterPrivatePath = /private/approvedLeagueMinter
+        
+        // Setup reusable paths for the Collection resource
+        self.leagueCollectionStoragePath = /storage/AthletaverseLeagueCollection
+        self.leagueCollectionPublicPath = /public/AthletaverseLeagueCollection
 
-        // Update the total supply to include the new League
-        self.totalSupply = ID
+        // Setup the Admin with init singleton
+        // - prevents additional LeagueSuperAdmin resources
+        // - https://docs.onflow.org/cadence/design-patterns/#init-singleton
 
-        // return the new League
-        return <- create NFT(ID: ID, name: name, rosterSize: rosterSize)
+        // Create the LeagueSuperAdmin resource
+        let superAdmin <- create LeagueSuperAdmin()
+
+        // Save the resource to the initializer's account storage
+        self.account.save(<-superAdmin, to: AthletaverseLeague.leagueSuperAdminStoragePath)
+
+        // Link a private capability to the LeagueSuperAdmin resource
+        self.account.link<&LeagueSuperAdmin{ApprovedLeagueMinter}>(
+            AthletaverseLeague.approvedLeagueMinterPrivatePath,
+            target: AthletaverseLeague.leagueSuperAdminStoragePath
+        )
+
+        // Setup the initializer's League Collection
+        self.setupLeagueCollection(signer: self.account)
+
+        emit ContractInitialized()
     }
 }
