@@ -25,6 +25,7 @@
       "serviceAccount": "emulator-account"
     }
   },
+  "comment-private-key": "IMPORTANT - This config uses the default flow-emulator private key to enable syntax highlighting in VS Code. You should update this with your own keys in the renamed (and ignored) flow.json and make sure to keep them private!!",
   "accounts": {
     "emulator-account": {
       "address": "f8d6e0586b0a20c7",
@@ -64,7 +65,7 @@
       "chain": "flow-emulator"
     }
   },
-  "comment": "EVERYTHING AFTER THIS IS GWTF SPECIFIC",
+  "comment-gwtf": "EVERYTHING AFTER THIS IS GWTF SPECIFIC",
   "webHooks": {
     "gwtf": {
       "id": "<id of webhook>",
