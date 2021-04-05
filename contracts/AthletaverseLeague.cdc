@@ -1,3 +1,4 @@
+import NonFungibleToken from "./onflow/NonFungibleToken.cdc"
 import AthletaverseUtils from "./AthletaverseUtils.cdc"
 import AthletaverseTeam from "./AthletaverseTeam.cdc"
 
@@ -6,7 +7,26 @@ import AthletaverseTeam from "./AthletaverseTeam.cdc"
 // A League allows a group of Teams to compete against eachother for a championship reward
 // at the end of each recurring Season
 
-pub contract AthletaverseLeague {
+pub contract AthletaverseLeague: NonFungibleToken {
+
+    // total amount of Leagues minted
+    pub var totalSupply: UInt64
+
+    // emitted when the contract is initialized
+    pub event ContractInitialized()
+
+    // Event that is emitted when a token is withdrawn,
+    // indicating the owner of the collection that it was withdrawn from.
+    //
+    // If the collection is not in an account's storage, `from` will be `nil`.
+    //
+    pub event Withdraw(id: UInt64, from: Address?)
+
+    // Event that emitted when a token is deposited to a collection.
+    //
+    // It indicates the owner of the collection that it was deposited to.
+    //
+    pub event Deposit(id: UInt64, to: Address?)
     
     // emitted when a new League is created
     pub event NewLeagueCreated(_ ID: UInt64)
@@ -24,7 +44,7 @@ pub contract AthletaverseLeague {
     pub event AddTeamRejected(teamID: UInt64, leagueID: UInt64)
 
     // Leagues are a resource that represents a collection of Teams.
-    pub resource League {
+    pub resource NFT: NonFungibleToken.INFT {
 
         // each League has a unique ID
         pub let ID: UInt64
@@ -118,8 +138,70 @@ pub contract AthletaverseLeague {
         }
     }
 
-    pub fun createNewLeague(ID: UInt64, name: String, rosterSize: Int): @League {
+    pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic {
+                // dictionary of NFT conforming tokens
+        // NFT is a resource type with an `UInt64` ID field
+        pub var ownedNFTs: @{UInt64: NonFungibleToken.NFT}
+
+        init () {
+            self.ownedNFTs <- {}
+        }
+
+        // withdraw removes an NFT from the collection and moves it to the caller
+        pub fun withdraw(withdrawID: UInt64): @NonFungibleToken.NFT {
+            let token <- self.ownedNFTs.remove(key: withdrawID) ?? panic("missing NFT")
+
+            emit Withdraw(id: token.id, from: self.owner?.address)
+
+            return <-token
+        }
+
+        // deposit takes a NFT and adds it to the collections dictionary
+        // and adds the ID to the id array
+        pub fun deposit(token: @NonFungibleToken.NFT) {
+            let token <- token as! @AthletaverseLeague.NFT
+
+            let id: UInt64 = token.id
+
+            // add the new token to the dictionary which removes the old one
+            let oldToken <- self.ownedNFTs[id] <- token
+
+            emit Deposit(id: id, to: self.owner?.address)
+
+            destroy oldToken
+        }
+
+        // getIDs returns an array of the IDs that are in the collection
+        pub fun getIDs(): [UInt64] {
+            return self.ownedNFTs.keys
+        }
+
+        // borrowNFT gets a reference to an NFT in the collection
+        // so that the caller can read its metadata and call its methods
+        pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT {
+            return &self.ownedNFTs[id] as &NonFungibleToken.NFT
+        }
+
+        destroy() {
+            destroy self.ownedNFTs
+        }
+    }
+
+    // anyone can create an empty Collection
+    pub fun createEmptyCollection(): @NonFungibleToken.Collection {
+        return <- create Collection()
+    }
+
+    // mint a new league and return it to the caller
+    pub fun createNewLeague(name: String, rosterSize: Int): @NFT {
+        
+        // Increment the totalSupply to get the League ID
+        var ID = self.totalSupply + 1 as UInt64
+
+        // Update the total supply to include the new League
+        self.totalSupply = ID
+
         // return the new League
-        return <- create League(ID: ID, name: name, rosterSize: rosterSize)
+        return <- create NFT(ID: ID, name: name, rosterSize: rosterSize)
     }
 }
