@@ -13,16 +13,16 @@ pub contract AthletaverseLeague: NonFungibleToken {
     pub var totalSupply: UInt64
 
     // LeagueMinter paths
-    pub var leagueMinterStoragePath: StoragePath
-    pub var leagueMinterPrivatePath: PrivatePath
+    access(contract) var leagueMinterStoragePath: StoragePath
+    access(contract) var leagueMinterPrivatePath: PrivatePath
 
     // LeagueSuperAdmin paths
-    pub var leagueSuperAdminStoragePath: StoragePath
-    pub var approvedLeagueMinterPrivatePath: PrivatePath
+    access(contract) var leagueSuperAdminStoragePath: StoragePath
+    access(contract) var approvedLeagueMinterPrivatePath: PrivatePath
     
     // Collection paths
-    pub var leagueCollectionStoragePath: StoragePath
-    pub var leagueCollectionPublicPath: PublicPath
+    access(contract) var leagueCollectionStoragePath: StoragePath
+    access(contract) var leagueCollectionPublicPath: PublicPath
 
     // events from the NFT standard
     pub event ContractInitialized()
@@ -63,12 +63,12 @@ pub contract AthletaverseLeague: NonFungibleToken {
         // TODO: define the capability type
         pub let teams: @AthletaverseUtils.QueuedCapabilityManager
 
-        init(ID: UInt64, name: String, rosterSize: Int) {
-            self.id = ID
+        init(name: String, rosterSize: Int) {
+            self.id = AthletaverseLeague.totalSupply + 1 as UInt64
             self.name = name
             self.teams <- AthletaverseUtils.newQueuedCapabilityManager(limit: rosterSize)
 
-            emit NewLeagueCreated(ID)
+            emit NewLeagueCreated(self.id)
         }
 
         // registerTeam adds a Team's public capability to the approval queue
@@ -213,60 +213,106 @@ pub contract AthletaverseLeague: NonFungibleToken {
         )
     }
 
+    access(contract) fun hasAccountCollection(_ signer: PublicAccount): Bool {
+        let collectionCapability = signer.getCapability<&{NonFungibleToken.CollectionPublic}>(AthletaverseLeague.leagueCollectionPublicPath)
+
+        return collectionCapability.check()
+    }
+
+    // adds the signer to the LeagueMinter requests dictionary for Super Admin approval
     pub fun requestLeagueMintingCapability(signer: AuthAccount) {
         // setup the league Collection
         self.setupAccountCollection(signer)
 
         // TODO: setup capability receiver
+        let minter <- create LeagueMinter()
+            
+        signer.save(<- minter, to: /storage/AthletaverseLeagueMinter)
+
+        signer.link<&LeagueMinter>(
+            AthletaverseLeague.leagueMinterPrivatePath,
+            target: AthletaverseLeague.leagueMinterStoragePath
+        )
 
         emit NewLeagueMinterRequested(signer.address)
     }
 
+    pub resource interface LockedLeagueMinter {
+        pub fun addLeagueMintingCapability(_ capability: Capability<&LeagueSuperAdmin{ApprovedLeagueMinter}>)
+    }
+
     // allows the owner of the resource to mint a new League NFT
-    pub resource LeagueMinter {
-        // mint a new league and return it to the caller
-        pub fun createNewLeague(name: String, rosterSize: Int): @AthletaverseLeague.NFT {
-            
-            // Increment the totalSupply to get the League ID
-            var ID = AthletaverseLeague.totalSupply + 1 as UInt64
+    pub resource LeagueMinter: LockedLeagueMinter, ApprovedLeagueMinter {
+        
+        access(self) var createLeagueCapability : Capability<&LeagueSuperAdmin{ApprovedLeagueMinter}>?
 
-            // Update the total supply to include the new League
-            AthletaverseLeague.totalSupply = ID
-
-            emit NewLeagueCreated(ID)
-
-            // return the new League
-            return <- create NFT(ID: ID, name: name, rosterSize: rosterSize)
+        init() {
+            self.createLeagueCapability = nil
         }
+
+        pub fun addLeagueMintingCapability(_ capability: Capability<&LeagueSuperAdmin{ApprovedLeagueMinter}>) {
+            pre {
+                capability.borrow() != nil: "Invalid approvedLeagueMinter capability"
+            }
+
+            self.createLeagueCapability = capability
+        }
+
+        pub fun createNewLeague(name: String, rosterSize: Int) {
+
+            pre {
+                self.owner != nil: "This resource has no owner"
+                AthletaverseLeague.hasAccountCollection(self.owner!) == true: "Account has no League Collection"
+                self.createLeagueCapability != nil: "Can not create a league until approved by the Super Admin"
+            }
+
+            // create a new League NFT
+            let league <- create AthletaverseLeague.NFT(name: name, rosterSize: rosterSize)
+
+            // get the LeagueMinter resource owner's CollectionPublic capability
+            let collectionCapability = self.owner!.getCapability<&Collection{NonFungibleToken.CollectionPublic}>
+                                            (AthletaverseLeague.leagueCollectionPublicPath)
+
+            // borrow a reference to the CollectionPublic capability
+            let collectionReference = collectionCapability.borrow()
+
+            // deposit the League NFT into the LeagueMinter resource owner's collection
+            collectionReference!.deposit(token: <-league)
+        }
+
     }
 
     // The ApprovedLeagueMinter capability will be provided to
     // accounts that have been approved to create new Leagues
-    //
     pub resource interface ApprovedLeagueMinter {
-        pub fun createLeagueMinter(signer: AuthAccount)
+        pub fun createNewLeague(name: String, rosterSize: Int)
     }
 
     // Allows owner to create a new LeagueMinter resource
     pub resource LeagueSuperAdmin: ApprovedLeagueMinter {
 
-        // returns a new LeagueMinter resource to the caller
-        //
-        // TODO: going to need a capability receiver here
-        // to pass this functionality to an approved caller
-        pub fun createLeagueMinter(signer: AuthAccount) {
-            
-            let minter <- create LeagueMinter()
-            
-            signer.save(<- minter, to: /storage/AthletaverseLeagueMinter)
+        // mint a new league and return it to the caller
+        pub fun createNewLeague(name: String, rosterSize: Int) {
 
-            signer.link<&LeagueMinter>(
-                AthletaverseLeague.leagueMinterPrivatePath,
-                target: AthletaverseLeague.leagueMinterStoragePath
-            )
+            pre {
+                self.owner != nil: "This resource has no owner"
+                AthletaverseLeague.hasAccountCollection(self.owner!) == true: "Account has no League Collection" 
+            }
 
-            emit NewLeagueMinterCreated(signer.address)
+            // create a new League NFT
+            let league <- create AthletaverseLeague.NFT(name: name, rosterSize: rosterSize)
+
+            // get the Super Admin's CollectionPublic capability
+            let collectionCapability = self.owner!.getCapability<&Collection{NonFungibleToken.CollectionPublic}>
+                                            (AthletaverseLeague.leagueCollectionPublicPath)
+
+            // borrow a reference to the CollectionPublic capability
+            let collectionReference = collectionCapability.borrow()
+
+            // deposit the League NFT into the Super Admin's collection
+            collectionReference!.deposit(token: <-league)
         }
+
     }
 
     init() {
