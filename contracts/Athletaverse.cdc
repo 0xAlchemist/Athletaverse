@@ -7,25 +7,18 @@ import AthletaverseTeam from "./AthletaverseTeam.cdc"
 //
 // TODO: Explain sports and league creation once prototyped
 // 
-// TODO: Add Collections for League and Team resource - are they NFTs or just similar resources?
+// TODO: Add Collections for Team resource - are they NFTs or just similar resources?
 pub contract Athletaverse {
 
     pub var totalTeams: UInt64
 
+    // requestLeagueMinter sets up a capability receiver for the caller
+    // that awaits approval from the LeagueSuperAdmin
+    //
+    // once approved, the caller can create new League
     pub fun requestLeagueMinter(_ signer: AuthAccount) {
         AthletaverseLeague.requestLeagueMintingCapability(signer)
     }
-    
-    // TODO: This should be 'admin only' - could make this something users need to
-    // 'unlock' via purchase, or by committing their initial prize Vault to prevent
-    // spam League creation
-    // 
-    // createNewLeague creates a new League resource and returns it to the caller
-    // pub fun createNewLeague(name: String, rosterSize: Int): @AthletaverseLeague.League {
-
-    //     // return the new League
-    //     return <- AthletaverseLeague.createNewLeague(ID: ID, name: name, rosterSize: rosterSize)
-    // }
 
     // createNewTeam creates a new Team resource and returns it to the caller
     //
