@@ -10,19 +10,22 @@ import AthletaverseTeam from "./AthletaverseTeam.cdc"
 // TODO: Add Collections for League and Team resource - are they NFTs or just similar resources?
 pub contract Athletaverse {
 
-    // totalTeams represents the total number of Teams that have been created
-    access(contract) var totalTeams: UInt64
+    pub var totalTeams: UInt64
+
+    pub fun requestLeagueMinter(_ signer: AuthAccount) {
+        AthletaverseLeague.requestLeagueMintingCapability(signer)
+    }
     
     // TODO: This should be 'admin only' - could make this something users need to
     // 'unlock' via purchase, or by committing their initial prize Vault to prevent
     // spam League creation
     // 
     // createNewLeague creates a new League resource and returns it to the caller
-    pub fun createNewLeague(name: String, rosterSize: Int): @AthletaverseLeague.League {
+    // pub fun createNewLeague(name: String, rosterSize: Int): @AthletaverseLeague.League {
 
-        // return the new League
-        return <- AthletaverseLeague.createNewLeague(ID: ID, name: name, rosterSize: rosterSize)
-    }
+    //     // return the new League
+    //     return <- AthletaverseLeague.createNewLeague(ID: ID, name: name, rosterSize: rosterSize)
+    // }
 
     // createNewTeam creates a new Team resource and returns it to the caller
     //
@@ -43,13 +46,6 @@ pub contract Athletaverse {
     }
 
     init() {
-        // Initialize the contract with no Leagues or Teams
-        self.totalLeagues = 0
-        self.totalTeams = 0
-
-        // TODO: Save Admin resource using init singleton pattern
-        //
-        // Doesn't work with CLI tooling yet:
-        // https://github.com/onflow/flow-cli/issues/79
+        self.totalTeams = 0 as UInt64
     }
 }

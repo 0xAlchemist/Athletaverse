@@ -12,3 +12,6 @@ deploy: setup
 demo: deploy
 		go run ./demo/main.go
 
+.PHONY: test
+test: deploy
+		go run ./test/main.go
