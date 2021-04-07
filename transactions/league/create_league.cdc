@@ -11,12 +11,13 @@ transaction() {
     prepare(signer: AuthAccount) {
         
         // create a new League
-        let newLeague <- Athletaverse.createNewLeague(name: "Metaverse Hockey League", rosterSize: 24)
+        let leagueMinter = signer.getCapability
+                            <&AthletaverseLeague.LeagueMinter>
+                            (AthletaverseLeague.leagueMinterPrivatePath)
+                            .borrow() ?? panic("Could not borrow a reference to the LeagueMinter")
 
-        // save the League to account storage
-        signer.save(<-newLeague, to: /storage/AthletaverseLeague)
-
-        // link a public capability to the League
-        signer.link<&AthletaverseLeague.League>(/public/AthletaverseLeague, target: /storage/AthletaverseLeague)
+        
+        
+        leagueMinter.createNewLeague(name: "Metaverse Hockey League", rosterSize: 24)
     }
 }
