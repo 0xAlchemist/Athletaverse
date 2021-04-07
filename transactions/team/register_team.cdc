@@ -19,7 +19,7 @@ transaction(leagueID: UInt64, leagueOwnerAddress: Address) {
 
         // get the Public capability for the League Collection
         let leagueCollection = signer.getCapability
-            <&AthletaverseLeague.Collection{AthletaverseLeague.LeagueCollectionPublic}>
+            <&AthletaverseLeague.Collection{AthletaverseLeague.CollectionPublic}>
             (AthletaverseLeague.leagueCollectionPublicPath)!
             .borrow() ?? panic("account has no League Collection")
 

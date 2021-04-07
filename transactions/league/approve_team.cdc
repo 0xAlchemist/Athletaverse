@@ -14,11 +14,11 @@ transaction(leagueID: UInt64, teamID: UInt64) {
 
         // borrow a reference to the League from storage
         let collection = signer.getCapability
-            <&AthletaverseLeague.Collection{AthletaverseLeague.LeagueCollectionPublic}>
-            (AthletaverseLeague.leagueCollectionPublicPath)
-            .borrow() ?? panic ("could not borrow public capability for League Collection")
+            <&AthletaverseLeague.Collection{AthletaverseLeague.CollectionManager}>
+            (AthletaverseLeague.leagueCollectionManagerPrivatePath)
+            .borrow() ?? panic ("could not borrow private capability for League Collection")
 
-        let leagueRef = collection.borrowLeague(id: leagueID) ??
+        let leagueRef = collection.borrowManager(id: leagueID) ??
             panic("trying to borrow a reference to a League that does not exist")
 
         // register the Team to the League
