@@ -13,16 +13,17 @@ pub contract AthletaverseLeague: NonFungibleToken {
     pub var totalSupply: UInt64
 
     // LeagueMinter paths
-    access(contract) var leagueMinterStoragePath: StoragePath
-    access(contract) var leagueMinterPrivatePath: PrivatePath
+    pub let leagueMinterStoragePath: StoragePath
+    pub let leagueMinterPrivatePath: PrivatePath
+     pub let lockedLeagueMinterPublicPath: PublicPath
 
     // LeagueSuperAdmin paths
-    access(contract) var leagueSuperAdminStoragePath: StoragePath
-    access(contract) var approvedLeagueMinterPrivatePath: PrivatePath
+    pub let leagueSuperAdminStoragePath: StoragePath
+    pub let approvedLeagueMinterPrivatePath: PrivatePath
     
     // Collection paths
-    access(contract) var leagueCollectionStoragePath: StoragePath
-    access(contract) var leagueCollectionPublicPath: PublicPath
+    pub let leagueCollectionStoragePath: StoragePath
+    pub let leagueCollectionPublicPath: PublicPath
 
     // events from the NFT standard
     pub event ContractInitialized()
@@ -30,10 +31,10 @@ pub contract AthletaverseLeague: NonFungibleToken {
     pub event Deposit(id: UInt64, to: Address?)
     
     // emitted when a new League is created
-    pub event NewLeagueCreated(_ ID: UInt64)
+    pub event NewLeagueCreated(_ ID: UInt64, name: String)
 
     // emitted when a new LeagueMinter has been approved
-    pub event NewLeagueMinterCreated(_ account: Address)
+    pub event NewLeagueMinterApproved(_ account: Address)
     
     // emitted when a new LeagueMinter capability has been created
     pub event NewLeagueMinterRequested(_ account: Address)
@@ -68,7 +69,7 @@ pub contract AthletaverseLeague: NonFungibleToken {
             self.name = name
             self.teams <- AthletaverseUtils.newQueuedCapabilityManager(limit: rosterSize)
 
-            emit NewLeagueCreated(self.id)
+            emit NewLeagueCreated(self.id, name: name)
         }
 
         // registerTeam adds a Team's public capability to the approval queue
@@ -213,14 +214,17 @@ pub contract AthletaverseLeague: NonFungibleToken {
         )
     }
 
+    // returns true or false depending on whether the League collection has been setup
+    // in the signer's account
     access(contract) fun hasAccountCollection(_ signer: PublicAccount): Bool {
-        let collectionCapability = signer.getCapability<&{NonFungibleToken.CollectionPublic}>(AthletaverseLeague.leagueCollectionPublicPath)
+        let collectionCapability = signer.getCapability<&{NonFungibleToken.CollectionPublic}>
+                                        (AthletaverseLeague.leagueCollectionPublicPath)
 
         return collectionCapability.check()
     }
 
     // adds the signer to the LeagueMinter requests dictionary for Super Admin approval
-    pub fun requestLeagueMintingCapability(signer: AuthAccount) {
+    pub fun requestLeagueMintingCapability(_ signer: AuthAccount) {
         // setup the league Collection
         self.setupAccountCollection(signer)
 
@@ -231,6 +235,11 @@ pub contract AthletaverseLeague: NonFungibleToken {
 
         signer.link<&LeagueMinter>(
             AthletaverseLeague.leagueMinterPrivatePath,
+            target: AthletaverseLeague.leagueMinterStoragePath
+        )
+
+        signer.link<&LeagueMinter{LockedLeagueMinter}>(
+            AthletaverseLeague.lockedLeagueMinterPublicPath,
             target: AthletaverseLeague.leagueMinterStoragePath
         )
 
@@ -252,10 +261,12 @@ pub contract AthletaverseLeague: NonFungibleToken {
 
         pub fun addLeagueMintingCapability(_ capability: Capability<&LeagueSuperAdmin{ApprovedLeagueMinter}>) {
             pre {
-                capability.borrow() != nil: "Invalid approvedLeagueMinter capability"
+                capability.borrow() != nil: "Invalid ApprovedLeagueMinter capability"
             }
 
             self.createLeagueCapability = capability
+
+            emit NewLeagueMinterApproved(self.owner!.address)
         }
 
         pub fun createNewLeague(name: String, rosterSize: Int) {
@@ -323,6 +334,9 @@ pub contract AthletaverseLeague: NonFungibleToken {
         // Setup reusable paths for the LeagueMinter resource
         self.leagueMinterStoragePath = /storage/AthletaverseLeagueMinter
         self.leagueMinterPrivatePath = /private/AthletaverseLeagueMinter
+        
+        // Setup reusable paths for the LockedLeagueMinter capability=
+        self.lockedLeagueMinterPublicPath = /public/AthletaverseLockedLeagueMinter
         
         // Setup reusable paths for the LeagueSuperAdmin resource
         self.leagueSuperAdminStoragePath = /storage/AthletaverseLeagueSuperAdmin
