@@ -1,4 +1,3 @@
-import NonFungibleToken from "./onflow/NonFungibleToken.cdc"
 import AthletaverseUtils from "./AthletaverseUtils.cdc"
 import AthletaverseTeam from "./AthletaverseTeam.cdc"
 
@@ -7,7 +6,7 @@ import AthletaverseTeam from "./AthletaverseTeam.cdc"
 // A League allows a group of Teams to compete against eachother for a championship reward
 // at the end of each recurring Season
 
-pub contract AthletaverseLeague: NonFungibleToken {
+pub contract AthletaverseLeague {
 
     // total amount of Leagues minted
     pub var totalSupply: UInt64
@@ -15,7 +14,7 @@ pub contract AthletaverseLeague: NonFungibleToken {
     // LeagueMinter paths
     pub let leagueMinterStoragePath: StoragePath
     pub let leagueMinterPrivatePath: PrivatePath
-     pub let lockedLeagueMinterPublicPath: PublicPath
+    pub let lockedLeagueMinterPublicPath: PublicPath
 
     // LeagueSuperAdmin paths
     pub let leagueSuperAdminStoragePath: StoragePath
@@ -24,10 +23,10 @@ pub contract AthletaverseLeague: NonFungibleToken {
     // Collection paths
     pub let leagueCollectionStoragePath: StoragePath
     pub let leagueCollectionPublicPath: PublicPath
+    pub let leagueCollectionManagerPrivatePath: PrivatePath
 
     // events from the NFT standard
     pub event ContractInitialized()
-    pub event Withdraw(id: UInt64, from: Address?)
     pub event Deposit(id: UInt64, to: Address?)
     
     // emitted when a new League is created
@@ -51,8 +50,25 @@ pub contract AthletaverseLeague: NonFungibleToken {
     // emitted when the league owner rejects a new Team
     pub event AddTeamRejected(teamID: UInt64, leagueID: UInt64)
 
+    // provides access to admin methods for managing the League
+    pub resource interface LeagueManager {
+        pub fun registerTeam(teamCapability: Capability)
+        pub fun approveTeam(_ id: UInt64)
+        pub fun rejectTeam(_ id: UInt64)
+        pub fun removeTeam(_ id: UInt64)
+        pub fun getTeamIDs(): [UInt64]
+        pub fun getTeamInfo(): {UInt64: String}
+    }
+
+    // provides access to public League methods 
+    pub resource interface LeaguePublic {
+        pub fun registerTeam(teamCapability: Capability)
+        pub fun getTeamIDs(): [UInt64]
+        pub fun getTeamInfo(): {UInt64: String}
+    }
+
     // Leagues are a resource that represents a collection of Teams.
-    pub resource NFT: NonFungibleToken.INFT {
+    pub resource Token: LeagueManager, LeaguePublic {
 
         // each League has a unique ID
         pub let id: UInt64
@@ -146,39 +162,36 @@ pub contract AthletaverseLeague: NonFungibleToken {
         }
     }
 
-    pub resource interface LeagueCollectionPublic {
-        pub fun deposit(token: @NonFungibleToken.NFT)
+    pub resource interface CollectionPublic {
+        pub fun deposit(token: @Token)
         pub fun getIDs(): [UInt64]
-        pub fun borrowLeague(id: UInt64): &AthletaverseLeague.NFT?
+        pub fun borrowLeague(id: UInt64): &Token{LeaguePublic}?
     }
 
-    pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic, LeagueCollectionPublic {
+    pub resource interface CollectionManager {
+        pub fun getIDs(): [UInt64]
+        pub fun borrowLeague(id: UInt64): &Token{LeaguePublic}?
+        pub fun borrowManager(id: UInt64): &Token{LeagueManager}?
+    }
+
+    pub resource Collection: CollectionPublic, CollectionManager {
         // dictionary of NFT conforming tokens
         // NFT is a resource type with an `UInt64` ID field
-        pub var ownedNFTs: @{UInt64: NonFungibleToken.NFT}
+        pub var ownedLeagues: @{UInt64: Token}
 
         init () {
-            self.ownedNFTs <- {}
-        }
-
-        // withdraw removes an NFT from the collection and moves it to the caller
-        pub fun withdraw(withdrawID: UInt64): @NonFungibleToken.NFT {
-            let token <- self.ownedNFTs.remove(key: withdrawID) ?? panic("missing NFT")
-
-            emit Withdraw(id: token.id, from: self.owner?.address)
-
-            return <-token
+            self.ownedLeagues <- {}
         }
 
         // deposit takes a NFT and adds it to the collections dictionary
         // and adds the ID to the id array
-        pub fun deposit(token: @NonFungibleToken.NFT) {
-            let token <- token as! @AthletaverseLeague.NFT
+        pub fun deposit(token: @Token) {
+            let token <- token as! @Token
 
             let id: UInt64 = token.id
 
             // add the new token to the dictionary which removes the old one
-            let oldToken <- self.ownedNFTs[id] <- token
+            let oldToken <- self.ownedLeagues[id] <- token
 
             emit Deposit(id: id, to: self.owner?.address)
 
@@ -187,34 +200,28 @@ pub contract AthletaverseLeague: NonFungibleToken {
 
         // getIDs returns an array of the IDs that are in the collection
         pub fun getIDs(): [UInt64] {
-            return self.ownedNFTs.keys
+            return self.ownedLeagues.keys
         }
 
-        // borrowNFT gets a reference to an NFT in the collection
-        // so that the caller can read its metadata and call its methods
-        pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT {
-            return &self.ownedNFTs[id] as &NonFungibleToken.NFT
-        }
-
-        // borrowLeague gets a reference to an NFT in the collection
+        // borrowLeague gets a reference to a League Token {LeaguePublic} in the collection
         // so that the caller can use its League specific metadata and methods
-        pub fun borrowLeague(id: UInt64): &AthletaverseLeague.NFT? {
+        pub fun borrowLeague(id: UInt64): &Token{LeaguePublic}? {
+            return &self.ownedLeagues[id] as! &Token{LeaguePublic}
+        }
 
-            if self.ownedNFTs[id] != nil {
-                let leagueRef = &self.ownedNFTs[id] as auth &NonFungibleToken.NFT
-                return leagueRef as! &AthletaverseLeague.NFT
-            } else {
-                return nil
-            }
+        // borrowManager gets a reference to a League Token {LeagueManager} in the collection
+        // so that the owner can manage the League
+        pub fun borrowManager(id: UInt64): &Token{LeagueManager}? {
+            return &self.ownedLeagues[id] as! &Token{LeagueManager}
         }
 
         destroy() {
-            destroy self.ownedNFTs
+            destroy self.ownedLeagues
         }
     }
 
     // create an empty Collection
-    pub fun createEmptyCollection(): @NonFungibleToken.Collection {
+    pub fun createEmptyCollection(): @Collection {
         return <- create Collection()
     }
 
@@ -226,8 +233,13 @@ pub contract AthletaverseLeague: NonFungibleToken {
 
         signer.save(<-collection, to: self.leagueCollectionStoragePath)
 
-        signer.link<&Collection{LeagueCollectionPublic}>(
+        signer.link<&Collection{CollectionPublic}>(
             self.leagueCollectionPublicPath,
+            target: self.leagueCollectionStoragePath
+        )
+
+        signer.link<&Collection{CollectionManager}>(
+            self.leagueCollectionManagerPrivatePath,
             target: self.leagueCollectionStoragePath
         )
     }
@@ -235,8 +247,8 @@ pub contract AthletaverseLeague: NonFungibleToken {
     // returns true or false depending on whether the League collection has been setup
     // in the signer's account
     access(contract) fun hasAccountCollection(_ signer: PublicAccount): Bool {
-        let collectionCapability = signer.getCapability<&{LeagueCollectionPublic}>
-                                        (AthletaverseLeague.leagueCollectionPublicPath)
+        let collectionCapability = signer.getCapability<&{CollectionPublic}>
+            (AthletaverseLeague.leagueCollectionPublicPath)
 
         return collectionCapability.check()
     }
@@ -296,10 +308,10 @@ pub contract AthletaverseLeague: NonFungibleToken {
             }
 
             // create a new League NFT
-            let league <- create AthletaverseLeague.NFT(name: name, rosterSize: rosterSize)
+            let league <- create Token(name: name, rosterSize: rosterSize)
 
             // get the LeagueMinter resource owner's CollectionPublic capability
-            let collectionCapability = self.owner!.getCapability<&Collection{LeagueCollectionPublic}>
+            let collectionCapability = self.owner!.getCapability<&Collection{CollectionPublic}>
                                             (AthletaverseLeague.leagueCollectionPublicPath)
 
             // borrow a reference to the CollectionPublic capability
@@ -329,10 +341,10 @@ pub contract AthletaverseLeague: NonFungibleToken {
             }
 
             // create a new League NFT
-            let league <- create AthletaverseLeague.NFT(name: name, rosterSize: rosterSize)
+            let league <- create Token(name: name, rosterSize: rosterSize)
 
             // get the Super Admin's CollectionPublic capability
-            let collectionCapability = self.owner!.getCapability<&Collection{NonFungibleToken.CollectionPublic}>
+            let collectionCapability = self.owner!.getCapability<&Collection{CollectionPublic}>
                                             (AthletaverseLeague.leagueCollectionPublicPath)
 
             // borrow a reference to the CollectionPublic capability
@@ -363,6 +375,7 @@ pub contract AthletaverseLeague: NonFungibleToken {
         // Setup reusable paths for the Collection resource
         self.leagueCollectionStoragePath = /storage/AthletaverseLeagueCollection
         self.leagueCollectionPublicPath = /public/AthletaverseLeagueCollection
+        self.leagueCollectionManagerPrivatePath = /private/AthletaverseLeagueCollectionManager
 
         // Setup the Admin with (slightly modified for tooling) init singleton
         // - prevents additional LeagueSuperAdmin resources
