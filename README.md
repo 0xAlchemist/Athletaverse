@@ -17,7 +17,7 @@ Defines the League Token, Collection and admin resources for managing leagues
 
 ## Roadmap (super, mega early - likely to change)
 
-### League - Resource
+#### League - Resource
 - The league will have a leaderboard, schedule, games, player draft and a championship tournament with prizes
 - Each league will have "seasons". The length of each season is TBD
 - Additional leagues/tiers will be created as the user base and amount of active teams grows
