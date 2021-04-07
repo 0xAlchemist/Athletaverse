@@ -48,8 +48,7 @@ func main() {
 		SignProposeAndPayAs("user_2").
 		RunPrintEvents(ignoreFields)
 
-		// Request to register the team to the league
-		// THIS SHOULD FAIL!!
+	// Request to register the team to the league
 	g.
 		TransactionFromFile("league/approve_team").
 		UInt64Argument(1).
@@ -72,10 +71,11 @@ func main() {
 		SignProposeAndPayAs("user_1").
 		RunPrintEvents(ignoreFields)
 
-	// // Check the team IDs registered to the league
-	// g.
-	// 	ScriptFromFile("league/get_team_ids").
-	// 	AccountArgument("user_1").
-	// 	Run()
+	// Check the team IDs registered to the league
+	g.
+		ScriptFromFile("league/get_team_ids").
+		AccountArgument("user_1").
+		UInt64Argument(1).
+		Run()
 
 }

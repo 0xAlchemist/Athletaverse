@@ -5,14 +5,16 @@
 import Athletaverse from 0x01cf0e2f2f715450
 import AthletaverseLeague from 0x01cf0e2f2f715450
 
-pub fun main(account: Address) {
+pub fun main(account: Address, leagueID: UInt64) {
 
     let account = getAccount(account)
 
-    let leagueCapability = account.getCapability(/public/AthletaverseLeague)
+    let collection = account.getCapability
+        <&AthletaverseLeague.Collection{AthletaverseLeague.CollectionPublic}>
+        (AthletaverseLeague.leagueCollectionPublicPath)
+        .borrow() ?? panic("could not borrow a reference to the CollectionPublic interface")
 
-    let leagueReference = leagueCapability.borrow<&AthletaverseLeague.League>()
-    ?? panic("unable to borrow the League reference")
+    let league = collection.borrowLeague(id: leagueID)
 
-    log(leagueReference.getTeamIDs())
+    log(league!.getTeamIDs())
 }
