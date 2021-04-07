@@ -37,7 +37,7 @@ func main() {
 	g.
 		TransactionFromFile("team/create_team").
 		StringArgument("Huge Beauts").
-		SignProposeAndPayAs("user_1").
+		SignProposeAndPayAs("user_2").
 		RunPrintEvents(ignoreFields)
 
 	// Request to register the team to the league
@@ -45,7 +45,7 @@ func main() {
 		TransactionFromFile("team/register_team").
 		UInt64Argument(1).
 		AccountArgument("user_1").
-		SignProposeAndPayAs("user_1").
+		SignProposeAndPayAs("user_2").
 		RunPrintEvents(ignoreFields)
 
 		// Request to register the team to the league
@@ -57,18 +57,20 @@ func main() {
 		SignProposeAndPayAs("user_1").
 		RunPrintEvents(ignoreFields)
 
-	// // Check the team IDs registered to the league
-	// g.
-	// 	ScriptFromFile("league/get_team_info").
-	// 	AccountArgument("user_1").
-	// 	Run()
+	// Check the team IDs registered to the league
+	g.
+		ScriptFromFile("league/get_team_info").
+		AccountArgument("user_1").
+		UInt64Argument(1).
+		Run()
 
-	// // Remove the team from the league
-	// g.
-	// 	TransactionFromFile("team/remove_team").
-	// 	UInt64Argument(0).
-	// 	SignProposeAndPayAs("user_1").
-	// 	RunPrintEvents(ignoreFields)
+	// Remove the team from the league
+	g.
+		TransactionFromFile("team/remove_team").
+		UInt64Argument(1).
+		UInt64Argument(0).
+		SignProposeAndPayAs("user_1").
+		RunPrintEvents(ignoreFields)
 
 	// // Check the team IDs registered to the league
 	// g.

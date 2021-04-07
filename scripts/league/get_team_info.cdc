@@ -16,8 +16,7 @@ pub fun main(account: Address, leagueID: UInt64) {
         (AthletaverseLeague.leagueCollectionPublicPath)
         .borrow() ?? panic("could not borrow a reference to the public League Collection")
 
-    let league = collectionRef.borrowLeague(id: leagueID) ??
-        panic("league does not exist")
+    let league = collectionRef.borrowLeague(id: leagueID) ?? panic("league does not exist")
 
-    log(league.getTeamInfo()!)
+    log(league.getTeamInfo())
 }

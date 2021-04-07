@@ -8,17 +8,18 @@
 import Athletaverse from 0x01cf0e2f2f715450
 import AthletaverseLeague from 0x01cf0e2f2f715450
 
-transaction(teamID: UInt64) {
+transaction(leagueID: UInt64, teamID: UInt64) {
     prepare(signer: AuthAccount) {
 
         // get the public capability for the Team from storage
-        let teamCapability = signer.getCapability(/public/AthletaverseTeam)
+        let collection = signer.getCapability
+            <&AthletaverseLeague.Collection{AthletaverseLeague.CollectionManager}>
+            (AthletaverseLeague.leagueCollectionManagerPrivatePath)
+            .borrow() ?? panic("could not borrow CollectionManager capability")
 
-        // borrow a reference to the League from storage
-        let leagueReference = signer.borrow<&AthletaverseLeague.League>(from: /storage/AthletaverseLeague)
-        ?? panic ("could not borrow league capability")
+        let league = collection.borrowManager(id: leagueID) ?? panic("League does not exist")
 
         // register the Team to the League
-        leagueReference.removeTeam(teamID)
+        league.removeTeam(teamID)
     }
 }
