@@ -1,8 +1,21 @@
-# Hockeyverse
-A sports management game protocol for the open world. The Hockeyverse allows GMs to compose a team of Non-Fungible Tokens from various blockchain ecosystems and wreak havoc on the league.
+# Athletaverse
+A sports game protocol for the open world. The Athletaverse allows GMs to compose a team of Non-Fungible Tokens from various blockchain ecosystems and wreak havoc on various sports in multiple leagues.
 
-## Protocol Design
-Mechanics will be broken down as follows:
+## Current Implemetation
+Currently building out the asset managment and permissions:
+
+### Athletaverse.cdc
+Intended to be the primary entry point and wrapper for primary Athletaverse methods.
+
+### AthletaverseLeague.cdc
+Defines the League Token, Collection and admin resources for managing leagues
+- Deployer gets a LeagueSuperAdmin resource
+- LeagueManagers (Minters) must request the ApprovedLeagueMinter capability from LeagueSuperAdmin
+- League has a modified NFT Collection preventing trading/withdrawals
+- League has a private LeagueManager capability allowing the owner to manage teams
+- League has a public LeaguePublic capability allowing anyone to register a team (pending League owner approval)
+
+## Roadmap (super, mega early - likely to change)
 
 ### League - Resource
 - The league will have a leaderboard, schedule, games, player draft and a championship tournament with prizes
@@ -20,7 +33,7 @@ Mechanics will be broken down as follows:
 - Game stats will be saved on-chain for each team and player
 
 ##### Tournament
-- Elimination-style tournaments similar to the Stanley Cup Playoffs
+- Elimination-style tournaments
 - Tournament winner gets a trophy and the largest prize
 - Prizes are awarded to the winners of each playoff round, scaling upwards in value as the tournament advances
 - Special tournaments will be hosted in addition to the standard leagues
