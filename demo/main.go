@@ -14,6 +14,19 @@ func main() {
 		"flow.AccountKeyAdded":    {"publicKey"},
 	}
 
+	// Request a league minter for user 1
+	g.
+		TransactionFromFile("league/request_league_minter").
+		SignProposeAndPayAs("user_1").
+		RunPrintEvents(ignoreFields)
+
+	// Approve league minter for user 1
+	g.
+		TransactionFromFile("league/approve_league_minter").
+		AccountArgument("user_1").
+		SignProposeAndPayAs("athletaverse").
+		RunPrintEvents(ignoreFields)
+
 	// Create a league with user 1
 	g.
 		TransactionFromFile("league/create_league").
@@ -30,12 +43,17 @@ func main() {
 	// Request to register the team to the league
 	g.
 		TransactionFromFile("team/register_team").
+		UInt64Argument(1).
+		AccountArgument("user_1").
 		SignProposeAndPayAs("user_1").
 		RunPrintEvents(ignoreFields)
 
 		// Request to register the team to the league
+		// THIS SHOULD FAIL!!
 	g.
 		TransactionFromFile("league/approve_team").
+		UInt64Argument(1).
+		UInt64Argument(0).
 		SignProposeAndPayAs("user_1").
 		RunPrintEvents(ignoreFields)
 
@@ -43,19 +61,20 @@ func main() {
 	g.
 		ScriptFromFile("league/get_team_info").
 		AccountArgument("user_1").
+		UInt64Argument(1).
 		Run()
 
-	// Remove the team from the league
-	g.
-		TransactionFromFile("team/remove_team").
-		UInt64Argument(0).
-		SignProposeAndPayAs("user_1").
-		RunPrintEvents(ignoreFields)
+	// // Remove the team from the league
+	// g.
+	// 	TransactionFromFile("team/remove_team").
+	// 	UInt64Argument(0).
+	// 	SignProposeAndPayAs("user_1").
+	// 	RunPrintEvents(ignoreFields)
 
-	// Check the team IDs registered to the league
-	g.
-		ScriptFromFile("league/get_team_ids").
-		AccountArgument("user_1").
-		Run()
+	// // Check the team IDs registered to the league
+	// g.
+	// 	ScriptFromFile("league/get_team_ids").
+	// 	AccountArgument("user_1").
+	// 	Run()
 
 }
