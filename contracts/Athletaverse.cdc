@@ -10,6 +10,8 @@ import AthletaverseTeam from "./AthletaverseTeam.cdc"
 // TODO: Add Collections for League and Team resource - are they NFTs or just similar resources?
 pub contract Athletaverse {
 
+    pub var totalTeams: UInt64
+
     pub fun requestLeagueMinter(_ signer: AuthAccount) {
         AthletaverseLeague.requestLeagueMintingCapability(signer)
     }
@@ -31,19 +33,19 @@ pub contract Athletaverse {
     // - First team free, additional teams require payment
     // - All teams require payment
     // - One team per user
-    // pub fun createNewTeam(teamName: String): @AthletaverseTeam.Team {
+    pub fun createNewTeam(teamName: String): @AthletaverseTeam.Team {
         
-    //     // set the total Teams count as the teamID
-    //     let teamID = Athletaverse.totalTeams
+        // set the total Teams count as the teamID
+        let teamID = Athletaverse.totalTeams
 
-    //     // increment the totalTeams count by one
-    //     Athletaverse.totalTeams = Athletaverse.totalTeams + 1 as UInt64
+        // increment the totalTeams count by one
+        Athletaverse.totalTeams = Athletaverse.totalTeams + 1 as UInt64
         
-    //     // return the new Team to the caller
-    //     return <- AthletaverseTeam.createNewTeam(ID: teamID, name: teamName)
-    // }
+        // return the new Team to the caller
+        return <- AthletaverseTeam.createNewTeam(ID: teamID, name: teamName)
+    }
 
     init() {
-
+        self.totalTeams = 0 as UInt64
     }
 }

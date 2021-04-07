@@ -146,7 +146,13 @@ pub contract AthletaverseLeague: NonFungibleToken {
         }
     }
 
-    pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic {
+    pub resource interface LeagueCollectionPublic {
+        pub fun deposit(token: @NonFungibleToken.NFT)
+        pub fun getIDs(): [UInt64]
+        pub fun borrowLeague(id: UInt64): &AthletaverseLeague.NFT?
+    }
+
+    pub resource Collection: NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic, LeagueCollectionPublic {
         // dictionary of NFT conforming tokens
         // NFT is a resource type with an `UInt64` ID field
         pub var ownedNFTs: @{UInt64: NonFungibleToken.NFT}
@@ -190,6 +196,18 @@ pub contract AthletaverseLeague: NonFungibleToken {
             return &self.ownedNFTs[id] as &NonFungibleToken.NFT
         }
 
+        // borrowLeague gets a reference to an NFT in the collection
+        // so that the caller can use its League specific metadata and methods
+        pub fun borrowLeague(id: UInt64): &AthletaverseLeague.NFT? {
+
+            if self.ownedNFTs[id] != nil {
+                let leagueRef = &self.ownedNFTs[id] as auth &NonFungibleToken.NFT
+                return leagueRef as! &AthletaverseLeague.NFT
+            } else {
+                return nil
+            }
+        }
+
         destroy() {
             destroy self.ownedNFTs
         }
@@ -208,7 +226,7 @@ pub contract AthletaverseLeague: NonFungibleToken {
 
         signer.save(<-collection, to: self.leagueCollectionStoragePath)
 
-        signer.link<&Collection{NonFungibleToken.CollectionPublic}>(
+        signer.link<&Collection{LeagueCollectionPublic}>(
             self.leagueCollectionPublicPath,
             target: self.leagueCollectionStoragePath
         )
@@ -217,7 +235,7 @@ pub contract AthletaverseLeague: NonFungibleToken {
     // returns true or false depending on whether the League collection has been setup
     // in the signer's account
     access(contract) fun hasAccountCollection(_ signer: PublicAccount): Bool {
-        let collectionCapability = signer.getCapability<&{NonFungibleToken.CollectionPublic}>
+        let collectionCapability = signer.getCapability<&{LeagueCollectionPublic}>
                                         (AthletaverseLeague.leagueCollectionPublicPath)
 
         return collectionCapability.check()
@@ -281,7 +299,7 @@ pub contract AthletaverseLeague: NonFungibleToken {
             let league <- create AthletaverseLeague.NFT(name: name, rosterSize: rosterSize)
 
             // get the LeagueMinter resource owner's CollectionPublic capability
-            let collectionCapability = self.owner!.getCapability<&Collection{NonFungibleToken.CollectionPublic}>
+            let collectionCapability = self.owner!.getCapability<&Collection{LeagueCollectionPublic}>
                                             (AthletaverseLeague.leagueCollectionPublicPath)
 
             // borrow a reference to the CollectionPublic capability

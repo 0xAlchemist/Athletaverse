@@ -12,12 +12,10 @@ transaction() {
         
         // create a new League
         let leagueMinter = signer.getCapability
-                            <&AthletaverseLeague.LeagueMinter>
-                            (AthletaverseLeague.leagueMinterPrivatePath)
-                            .borrow() ?? panic("Could not borrow a reference to the LeagueMinter")
+            <&AthletaverseLeague.LeagueMinter>
+            (AthletaverseLeague.leagueMinterPrivatePath)
+            .borrow() ?? panic("Could not borrow a reference to the LeagueMinter")
 
-        
-        
         leagueMinter.createNewLeague(name: "Metaverse Hockey League", rosterSize: 24)
     }
 }

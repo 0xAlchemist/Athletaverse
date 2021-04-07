@@ -33,18 +33,20 @@ func main() {
 		SignProposeAndPayAs("user_1").
 		RunPrintEvents(ignoreFields)
 
-	// // Create a team with user 1
-	// g.
-	// 	TransactionFromFile("team/create_team").
-	// 	StringArgument("Huge Beauts").
-	// 	SignProposeAndPayAs("user_1").
-	// 	RunPrintEvents(ignoreFields)
+	// Create a team with user 1
+	g.
+		TransactionFromFile("team/create_team").
+		StringArgument("Huge Beauts").
+		SignProposeAndPayAs("user_1").
+		RunPrintEvents(ignoreFields)
 
-	// // Request to register the team to the league
-	// g.
-	// 	TransactionFromFile("team/register_team").
-	// 	SignProposeAndPayAs("user_1").
-	// 	RunPrintEvents(ignoreFields)
+	// Request to register the team to the league
+	g.
+		TransactionFromFile("team/register_team").
+		UInt64Argument(1).
+		AccountArgument("user_1").
+		SignProposeAndPayAs("user_1").
+		RunPrintEvents(ignoreFields)
 
 	// 	// Request to register the team to the league
 	// g.
