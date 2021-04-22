@@ -17,12 +17,12 @@ pub contract AthletaverseUtils {
         pub fun removeCapability(_ id: UInt64)
     }
 
-    // Allows the manager to handle queued requests to add Capabilities
+    // Allows the manager to handle requests to add Capabilities
     // to a dictionary
-    pub resource QueuedCapabilityManager: Requester, Manager {
+    pub resource RegisteredCapabilityManager: Requester, Manager {
 
         // the queued capabilities
-        pub var queue: {UInt64: Capability?}
+        pub var pending: {UInt64: Capability?}
 
         // the approved capabilites
         pub var approved: {UInt64: Capability?}
@@ -31,40 +31,40 @@ pub contract AthletaverseUtils {
         pub var limit: Int
 
         init(limit: Int) {
-            self.queue = {}
+            self.pending = {}
             self.approved = {}
             self.limit = limit
         }
 
-        // adds a capability to the queue using the provded ID as the key
+        // adds a capability to the dictionary using the provded ID as the key
         pub fun addCapability(id: UInt64, capability: Capability) {
             pre {
-                self.queue[id] == nil: "Queued capability already exists with this ID"
-                self.approved[id] == nil: "Approved capability already exists with this ID"
+                self.pending[id] == nil: "Pending capability already exists for this ID"
+                self.approved[id] == nil: "Approved capability already exists for this ID"
             }
 
-            self.queue[id] = capability
+            self.pending[id] = capability
         }
 
-        // moves the capability from the queue to the approved dictionary
+        // moves the capability from the pending to the approved dictionary
         pub fun approveRequest(_ id: UInt64) {
             pre {
-                self.queue[id] != nil: "No value at this key"
+                self.pending[id] != nil: "No value at this key"
                 self.approved[id] == nil: "A value has already been approved for this key"
                 self.approved.length <= self.limit: "No capacity remaining for this approval"
             }
 
-            self.approved[id] = self.queue[id]
-            self.queue.remove(key: id)
+            self.approved[id] = self.pending[id]
+            self.pending.remove(key: id)
         }
 
-        // removes the capability from the queue
+        // removes the capability from the pending dictionary
         pub fun rejectRequest(_ id: UInt64) {
             pre {
-                self.queue[id] != nil: "No value at this key"
+                self.pending[id] != nil: "No value at this key"
             }
 
-            self.queue.remove(key: id)
+            self.pending.remove(key: id)
         }
 
         // removes the capability from the approved dictionary
@@ -77,7 +77,7 @@ pub contract AthletaverseUtils {
         }
     }
 
-    pub fun newQueuedCapabilityManager(limit: Int): @QueuedCapabilityManager {
-        return <- create QueuedCapabilityManager(limit: limit)
+    access(account) fun newRegisteredCapabilityManager(limit: Int): @RegisteredCapabilityManager {
+        return <- create RegisteredCapabilityManager(limit: limit)
     }
 }

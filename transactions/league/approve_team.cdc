@@ -1,8 +1,7 @@
 // approve_register_team.cdc
 
 // TODO: Removed this method from simplified version
-// but will use this or something similar to setup
-// some sort of approval process.
+// but will use this or something similar t// some sort of approval process.
 
 // Registers a team to a League
 

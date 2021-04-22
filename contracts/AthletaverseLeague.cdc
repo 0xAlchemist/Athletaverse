@@ -1,8 +1,7 @@
 import AthletaverseUtils from "./AthletaverseUtils.cdc"
 import AthletaverseTeam from "./AthletaverseTeam.cdc"
 
-// LEAGUE
-//
+// LEAGUE//
 // A League allows a group of Teams to compete against eachother for a championship reward
 // at the end of each recurring Season
 
@@ -78,12 +77,12 @@ pub contract AthletaverseLeague {
 
         // teams maps the ID for each Team registered to the league to it's Capability
         // TODO: define the capability type
-        pub let teams: @AthletaverseUtils.QueuedCapabilityManager
+        pub let teams: @AthletaverseUtils.RegisteredCapabilityManager
 
         init(name: String, rosterSize: Int) {
             self.id = AthletaverseLeague.totalSupply + 1 as UInt64
             self.name = name
-            self.teams <- AthletaverseUtils.newQueuedCapabilityManager(limit: rosterSize)
+            self.teams <- AthletaverseUtils.newRegisteredCapabilityManager(limit: rosterSize)
 
             emit NewLeagueCreated(self.id, name: name)
         }
@@ -91,10 +90,10 @@ pub contract AthletaverseLeague {
         // registerTeam adds a Team's public capability to the approval queue
         //
         pub fun registerTeam(teamCapability: Capability) {
-            if let team = teamCapability.borrow<&AthletaverseTeam.Team>() {
-                self.teams.addCapability(id: team.ID, capability: teamCapability)
+            if let team = teamCapability.borrow<&{AthletaverseTeam.TeamPublic}>() {
+                self.teams.addCapability(id: team.id, capability: teamCapability)
 
-                emit TeamRegisteredToLeague(teamID: team.ID, leagueID: self.id)
+                emit TeamRegisteredToLeague(teamID: team.id, leagueID: self.id)
             } else {
                 log("Unable to get Team ID. Team was not registered")
             }
@@ -147,7 +146,7 @@ pub contract AthletaverseLeague {
             for id in teamIDs {
                 
                 // ... if the Capability exists, borrow a reference to the Team
-                if let teamReference = self.teams.approved[id]!!.borrow<&AthletaverseTeam.Team>() {
+                if let teamReference = self.teams.approved[id]!!.borrow<&{AthletaverseTeam.TeamPublic}>() {
                     
                     // ... add the team name to the teamInfo dictionary
                     teamInfo[id] = teamReference.getTeamName()   
@@ -186,7 +185,7 @@ pub contract AthletaverseLeague {
         // deposit takes a NFT and adds it to the collections dictionary
         // and adds the ID to the id array
         pub fun deposit(token: @Token) {
-            let token <- token as! @Token
+            let token <- token as @Token
 
             let id: UInt64 = token.id
 
